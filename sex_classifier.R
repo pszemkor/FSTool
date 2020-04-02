@@ -6,8 +6,6 @@ args = commandArgs(trailingOnly=TRUE)
 path <- args[1]
 label <- args[2]
 print(path)
-print("lalala")
-#"C:\\Users\\Acer\\Desktop\\HCL Matched Normals 6.26.18.csv"
 # label column name
 df <- read.table(path, header = TRUE,sep = ",")
 
