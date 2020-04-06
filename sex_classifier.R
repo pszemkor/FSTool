@@ -19,10 +19,11 @@ plot(result, type = "id", size = 50)
 plot(result, type = "features", size = 10)
 gid <- build.idgraph(result)
 plot(gid, label_dist = 1)
-gid <- build.idgraph(result, size = 6, size_ID = 12)
-plot(gid, label_dist = 0.9)
+gid <- build.idgraph(result, size_ID = 12)
+plot(gid, label_dist = 1)
 plot(result, type = "cv", measure = "wacc")
 print(result)
+
 
 
 
