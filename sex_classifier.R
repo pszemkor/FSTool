@@ -2,10 +2,10 @@
 
 library(rmcfs)
 library(dplyr)
-args = commandArgs(trailingOnly = TRUE)
+# args = commandArgs(trailingOnly = TRUE)
 path <- "data.csv"
-label <- "SEX"
-print(path)
+#label <- "SEX"
+#print(path)
 # label column name
 df <- read.table(path, header = TRUE, sep = ",")
 
