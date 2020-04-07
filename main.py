@@ -36,6 +36,9 @@ def test_classifiers(data, labels):
         print('accuracy: ', accuracy_score(test_labels, pred))
 
 
+from rpy2.robjects import r
+
+
 if __name__ == '__main__':
     algo = 'rf'
     path = 'data.csv'
@@ -53,6 +56,20 @@ if __name__ == '__main__':
         test_classifiers(data[first_k_features], labels)
 
     elif algo == "mcfs":
-        subprocess.run(["Rscript", "sex_classifier.R"])
+        r.library("rmcfs")
+        r.library("dplyr")
+        r('path <- "{}"'.format(path))
+        r('df <- read.table(path, header = TRUE, sep = ",")')
+        r('data <- select(df, - INITIALS)')
+        r('result <- mcfs(SEX ~ ., data, cutoffPermutations = 5, seed = 2, threadsNumber = 16)')
+
+        r('RI <- result$RI')
+        r('ID <- result$ID')
+
+        result = r['result']
+        ri = r['RI']
+        print('RI',ri)
+
+
     else:
         raise Exception("Unknown algorithm")
