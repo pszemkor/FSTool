@@ -1,5 +1,9 @@
-import subprocess
-
+import matplotlib.pyplot as plt
+import rpy2.robjects as ro
+import seaborn as sns
+from rpy2.robjects import pandas2ri
+from rpy2.robjects import r
+from rpy2.robjects.conversion import localconverter
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score, recall_score
@@ -11,20 +15,11 @@ from sklearn.svm import SVC
 from data import read_data
 from feature_util import get_best_k_features
 
-from rpy2.robjects import r
-import pandas as pd
-
-import rpy2.robjects as ro
-from rpy2.robjects.packages import importr
-from rpy2.robjects import pandas2ri
-
-from rpy2.robjects.conversion import localconverter
-
 
 def test_classifiers(data, labels):
-    train_features, test_features, train_labels, test_labels = train_test_split(data, labels,
-                                                                                test_size=0.2,
-                                                                                random_state=42)
+    X_train, X_test, Y_train, Y_test = train_test_split(data, labels,
+                                                        test_size=0.2,
+                                                        random_state=42)
     svm = SVC()
     nn = MLPClassifier()
     rf = RandomForestClassifier()
@@ -36,17 +31,37 @@ def test_classifiers(data, labels):
                   "rf": {'n_estimators': [50, 100, 200, 300]}}
 
     for k, v in classifiers.items():
-        cv = GridSearchCV(v, cls_params[k])
-        cv.fit(train_features, train_labels)
-        pred = cv.predict(test_features)
+        cv = GridSearchCV(v, cls_params[k], cv=5)
+        cv.fit(X_train, Y_train)
+        pred = cv.predict(X_test)
         print(k)
-        print('f1: ', f1_score(test_labels, pred, average="macro"))
-        print('recall: ', recall_score(test_labels, pred, average="macro"))
-        print('accuracy: ', accuracy_score(test_labels, pred))
+        print('f1: ', f1_score(Y_test, pred, average="macro"))
+        print('recall: ', recall_score(Y_test, pred, average="macro"))
+        print('accuracy: ', accuracy_score(Y_test, pred))
+
+
+def correlations(method, threshold=0.8):
+    data, labels = read_data(path, target)
+    corr = data.corr(method=method)
+
+    highly_corr = []
+    for i, f1 in enumerate(data.columns):
+        for j, f2 in enumerate(data.columns):
+            if i > j and abs(corr.iloc[i, j]) > threshold:
+                highly_corr.append(f1)
+                highly_corr.append(f2)
+                print((f1, "     " + f2, corr.iloc[i, j]))
+    corr = data[highly_corr].corr(method=method)
+
+    s = set(data.columns) - set(highly_corr)
+    print(len(s), s)
+    plt.subplots(figsize=(20, 20))
+    sns.heatmap(corr, cmap='YlGnBu')
+    plt.show()
 
 
 if __name__ == '__main__':
-    algo = 'mcfs'
+    algo = 'corr_kendall'
     path = 'data.csv'
     target = 'SEX'
     k = 20
@@ -60,27 +75,34 @@ if __name__ == '__main__':
         first_k_features = get_best_k_features(forest, train_features, k)
 
         test_classifiers(data[first_k_features], labels)
-
     elif algo == "mcfs":
+
+        # utils = rpackages.importr('utils')
+        # packnames = ('rmcfs',)
+        # utils.install_packages(StrVector(packnames))
+
         r.library("rmcfs")
         r.library("dplyr")
         r('path <- "{}"'.format(path))
         r('df <- read.table(path, header = TRUE, sep = ",")')
         r('data <- select(df, - INITIALS)')
-        r('result <- mcfs(SEX ~ ., data, cutoffPermutations = 5, seed = 2, threadsNumber = 16)')
+        r('result <- mcfs(SEX ~ ., data, cutoffPermutations = 10, seed = 2, threadsNumber = 16)')
 
         r('RI <- result$RI')
         r('ID <- result$ID')
 
         result = r['result']
         ri = r['RI']
-        print('RI',ri)
-        print(dir(ri), type(ri))
 
         with localconverter(ro.default_converter + pandas2ri.converter):
-          pd_df = ro.conversion.rpy2py(ri)
+            pd_df = ro.conversion.rpy2py(ri)
 
         print(pd_df)
-
+    elif algo == "corr_spearman":
+        correlations("spearman")
+    elif algo == "corr_kendall":
+        correlations("kendall")
+    elif algo == "pearson":
+        correlations("pearson")
     else:
         raise Exception("Unknown algorithm")
