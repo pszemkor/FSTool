@@ -1,3 +1,5 @@
+from warnings import filterwarnings
+
 import matplotlib.pyplot as plt
 import rpy2.robjects as ro
 import seaborn as sns
@@ -15,6 +17,8 @@ from sklearn.svm import SVC
 from data import read_data
 from feature_util import get_best_k_features
 
+filterwarnings('ignore')
+
 
 def test_classifiers(data, labels):
     X_train, X_test, Y_train, Y_test = train_test_split(data, labels,
@@ -24,50 +28,52 @@ def test_classifiers(data, labels):
     nn = MLPClassifier()
     rf = RandomForestClassifier()
     classifiers = {"svm": svm, "nn": nn, "rf": rf}
-    cls_params = {"svm": {'kernel': ('linear', 'rbf'), 'C': [1, 5, 10]},
+    cls_params = {"svm": {'kernel': ('linear', 'rbf', 'sigmoid', 'poly'),
+                          'C': [.001, .01, .1, .5, 1, 2, 5, 10]},
                   "nn": {'activation': ['relu', 'tanh', 'logistic'],
-                         'hidden_layer_sizes': [(100,), (10, 50), (50, 100)],
-                         'solver': ['sgd', 'adam'], 'learning_rate': ['adaptive']},
-                  "rf": {'n_estimators': [50, 100, 200, 300]}}
+                         'hidden_layer_sizes': [(100,), (10, 50, 2), (50, 100, 2), (10, 10, 20, 2), (200,), (300, 2),
+                                                (300,)],
+                         'solver': ['adam'],
+                         'learning_rate': ['adaptive', 'invscaling', 'adaptive', 'constant'],
+                         'warm_start': [True, False]},
+                  "rf": {'n_estimators': [50, 100, 200, 300, 400, 500],
+                         'criterion': ['gini', 'entropy']}
+                  }
 
     for k, v in classifiers.items():
         cv = GridSearchCV(v, cls_params[k], cv=5)
         cv.fit(X_train, Y_train)
         pred = cv.predict(X_test)
-        print(k)
+        print("***** ", k, " ****")
         print('f1: ', f1_score(Y_test, pred, average="macro"))
         print('recall: ', recall_score(Y_test, pred, average="macro"))
         print('accuracy: ', accuracy_score(Y_test, pred))
+        print('best params: ', cv.best_params_)
 
 
-def correlations(method, threshold=0.8):
+def correlaion_based_fs(method, threshold=0.9):
     data, labels = read_data(path, target)
     corr = data.corr(method=method)
 
-    highly_corr = []
+    to_drop = []
     for i, f1 in enumerate(data.columns):
         for j, f2 in enumerate(data.columns):
             if i > j and abs(corr.iloc[i, j]) > threshold:
-                highly_corr.append(f1)
-                highly_corr.append(f2)
-                print((f1, "     " + f2, corr.iloc[i, j]))
-    corr = data[highly_corr].corr(method=method)
-
-    s = set(data.columns) - set(highly_corr)
-    print(len(s), s)
-    plt.subplots(figsize=(20, 20))
-    sns.heatmap(corr, cmap='YlGnBu')
+                to_drop.append(f1)
+    plt.subplots(figsize=(50, 50))
+    sns.heatmap(corr, vmax=1.0, center=0, square=True, linewidths=.5, cbar_kws={"shrink": .70})
     plt.show()
+    return list(set(data.columns) - set(to_drop))
 
 
 if __name__ == '__main__':
     algo = 'corr_kendall'
     path = 'data.csv'
     target = 'SEX'
-    k = 20
+    k = 10
+    data, labels = read_data(path, target)
     if algo == "rf":
         forest = ExtraTreesClassifier(n_estimators=250, random_state=0)
-        data, labels = read_data(path, target)
         train_features, test_features, train_labels, test_labels = train_test_split(data, labels,
                                                                                     test_size=0.2,
                                                                                     random_state=42)
@@ -76,7 +82,6 @@ if __name__ == '__main__':
 
         test_classifiers(data[first_k_features], labels)
     elif algo == "mcfs":
-
         # utils = rpackages.importr('utils')
         # packnames = ('rmcfs',)
         # utils.install_packages(StrVector(packnames))
@@ -99,10 +104,16 @@ if __name__ == '__main__':
 
         print(pd_df)
     elif algo == "corr_spearman":
-        correlations("spearman")
+        selected_features = correlaion_based_fs("spearman")
+        test_classifiers(data[selected_features], labels)
+
     elif algo == "corr_kendall":
-        correlations("kendall")
+        selected_features = correlaion_based_fs("kendall")
+        test_classifiers(data[selected_features], labels)
+
     elif algo == "pearson":
-        correlations("pearson")
+        selected_features = correlaion_based_fs("pearson")
+        test_classifiers(data[selected_features], labels)
+
     else:
         raise Exception("Unknown algorithm")
