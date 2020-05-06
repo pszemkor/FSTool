@@ -63,9 +63,22 @@ $divider-color:        #BDBDBD;
   flex: 1 1 auto;
 }
 
+
 .highlight {
   background-color: $background-pale;
   border: 1px solid $primary-color-dark;
   z-index: 1;
   transform: scale(1.01);
 }
+.full-width {
+    width: 95%
+}
+
+.half-width {
+    width: 45%
+}
+
+.form-size {
+    width: 75%
+}
+
