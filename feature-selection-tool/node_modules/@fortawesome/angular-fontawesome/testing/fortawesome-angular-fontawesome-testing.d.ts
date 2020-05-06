@@ -1,0 +1,7 @@
+/**
+ * Generated bundle index. Do not edit.
+ */
+export * from './public_api';
+export { MockFaIconLibrary as ɵa } from './icon/mock-icon-library.service';
+
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZm9ydGF3ZXNvbWUtYW5ndWxhci1mb250YXdlc29tZS10ZXN0aW5nLmQudHMiLCJzb3VyY2VzIjpbImZvcnRhd2Vzb21lLWFuZ3VsYXItZm9udGF3ZXNvbWUtdGVzdGluZy5kLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EiLCJzb3VyY2VzQ29udGVudCI6WyIvKipcbiAqIEdlbmVyYXRlZCBidW5kbGUgaW5kZXguIERvIG5vdCBlZGl0LlxuICovXG5leHBvcnQgKiBmcm9tICcuL3B1YmxpY19hcGknO1xuZXhwb3J0IHsgTW9ja0ZhSWNvbkxpYnJhcnkgYXMgybVhIH0gZnJvbSAnLi9pY29uL21vY2staWNvbi1saWJyYXJ5LnNlcnZpY2UnO1xuIl19
