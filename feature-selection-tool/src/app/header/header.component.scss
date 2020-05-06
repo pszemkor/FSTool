@@ -1,0 +1,17 @@
+$background-moredark: #4527A0;
+
+.active{
+    background: $background-moredark; 
+}
+
+@mixin zero-margin($pad-up-down, $pad-left-right) {
+    margin: 0px auto;
+    padding: $pad-up-down $pad-left-right;
+}
+
+
+.margin_class{
+    color: floralwhite!important;
+    margin: 20px;
+    text-decoration:none
+}
