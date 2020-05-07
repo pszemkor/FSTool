@@ -12,6 +12,7 @@ import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {ReactiveFormsModule} from '@angular/forms';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 
 
 import {AppComponent} from './app.component';
@@ -29,21 +30,22 @@ import { ParamsformComponent } from './paramsform/paramsform.component';
     HeaderComponent,
     ParamsformComponent
   ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    BrowserAnimationsModule,
-    MatToolbarModule,
-    FontAwesomeModule,
-    MatIconModule,
-    FlexLayoutModule,
-    MatSidenavModule,
-    MatSelectModule,
-    MatSlideToggleModule,
-    ReactiveFormsModule,
-    MatCardModule,
-    MatButtonModule,
-  ],
+    imports: [
+        BrowserModule,
+        AppRoutingModule,
+        BrowserAnimationsModule,
+        MatToolbarModule,
+        FontAwesomeModule,
+        MatIconModule,
+        FlexLayoutModule,
+        MatSidenavModule,
+        MatSelectModule,
+        MatSlideToggleModule,
+        ReactiveFormsModule,
+        MatCardModule,
+        MatButtonModule,
+        MatProgressSpinnerModule,
+    ],
   providers: [],
   bootstrap: [AppComponent]
 })

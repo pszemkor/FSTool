@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, EventEmitter, OnInit, Output} from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import {AlgoType, FeatureSelectionParameters} from '../shared/featureselectionparameters';
+import {FeatureSelectionResults} from '../shared/featureselectionresults';
 
 @Component({
   selector: 'app-paramsform',
@@ -12,6 +13,8 @@ export class ParamsformComponent implements OnInit {
   paramsForm: FormGroup;
   params: FeatureSelectionParameters;
   algoType = AlgoType;
+  result: FeatureSelectionResults;
+  @Output() sendParams: EventEmitter <FeatureSelectionParameters> = new EventEmitter<FeatureSelectionParameters>();
 
   constructor(private fb: FormBuilder) {
     this.createForm();
@@ -33,6 +36,7 @@ export class ParamsformComponent implements OnInit {
   onSubmit() {
     this.params = this.paramsForm.value;
     console.log(this.params);
+    this.sendParams.emit(this.params);
     this.paramsForm.reset({
       algoType: 'RF',
       rf: false,
