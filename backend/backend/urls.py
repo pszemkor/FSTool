@@ -23,13 +23,7 @@ sys.path.append(os.path.abspath('../'))
 sys.path.append(os.path.abspath('..'))
 from fst_server.views import fs_request
 
-
-
-class FS_Result():
-    result = [{"random forest": ["feature1", "feature2"]}]
-
-
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('^featureselection', fs_request)
+    path('featureselection', fs_request)
 ]

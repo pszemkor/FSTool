@@ -1,12 +1,12 @@
 from warnings import filterwarnings
 
 import matplotlib.pyplot as plt
-import rpy2.robjects as ro
+# import rpy2.robjects as ro
 import seaborn as sns
-from rpy2.robjects import pandas2ri
-from rpy2.robjects import r
-from rpy2.robjects.conversion import localconverter
-from rpy2.robjects.packages import importr
+# from rpy2.robjects import pandas2ri
+# from rpy2.robjects import r
+# from rpy2.robjects.conversion import localconverter
+# from rpy2.robjects.packages import importr
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score, recall_score
@@ -15,23 +15,25 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
-from data import read_data
-from feature_util import get_best_k_features
+from backend.execution.data import read_data
+from backend.execution.feature_util import get_best_k_features
+import sys, os
+
+sys.path.append(os.path.abspath('../'))
 
 filterwarnings('ignore')
 
-
-R_PLOT_DIR  = 'r_plot/'
-
-
-def plot_r(filename, plot_script):
-        grdevices = importr('grDevices')
-        grdevices.png(file=filename, width=700, height=700)
-        r(plot_script)
-        grdevices.dev_off()
+R_PLOT_DIR = '../../../r_plot/'
 
 
-def test_classifiers(data, labels):
+# def plot_r(filename, plot_script):
+#     grdevices = importr('grDevices')
+#     grdevices.png(file=filename, width=700, height=700)
+#     r(plot_script)
+#     grdevices.dev_off()
+
+
+def check_classifiers(data, labels):
     X_train, X_test, Y_train, Y_test = train_test_split(data, labels,
                                                         test_size=0.2,
                                                         random_state=42)
@@ -91,47 +93,48 @@ if __name__ == '__main__':
         forest.fit(train_features, train_labels)
         first_k_features = get_best_k_features(forest, train_features, k)
 
-        test_classifiers(data[first_k_features], labels)
+        check_classifiers(data[first_k_features], labels)
     elif algo == "mcfs":
-        # utils = rpackages.importr('utils')
-        # packnames = ('rmcfs',)
-        # utils.install_packages(StrVector(packnames))
-
-        r.library("rmcfs")
-        r.library("dplyr")
-        r('path <- "{}"'.format(path))
-        r('df <- read.table(path, header = TRUE, sep = ",")')
-        r('data <- select(df, - INITIALS)')
-        r('result <- mcfs(SEX ~ ., data, cutoffPermutations = 10, seed = 2, threadsNumber = 16)')
-
-        r('RI <- result$RI')
-        r('ID <- result$ID')
-
-        result = r['result']
-        ri = r['RI']
-
-        with localconverter(ro.default_converter + pandas2ri.converter):
-            pd_df = ro.conversion.rpy2py(ri)
-
-        print(pd_df)
-
-        plot_r(R_PLOT_DIR + 'ri.png','plot(result, type = "ri", size = 50, plot_permutations = TRUE)')
-        plot_r(R_PLOT_DIR + 'id.png','plot(result, type = "id", size = 50)')
-        plot_r(R_PLOT_DIR + 'features.png','plot(result, type = "features", size = 10)')
-        plot_r(R_PLOT_DIR + 'classifiers.png','plot(result, type = "cv", measure = "wacc")')
+        pass
+        # # utils = rpackages.importr('utils')
+        # # packnames = ('rmcfs',)
+        # # utils.install_packages(StrVector(packnames))
+        #
+        # r.library("rmcfs")
+        # r.library("dplyr")
+        # r('path <- "{}"'.format(path))
+        # r('df <- read.table(path, header = TRUE, sep = ",")')
+        # r('data <- select(df, - INITIALS)')
+        # r('result <- mcfs(SEX ~ ., data, cutoffPermutations = 10, seed = 2, threadsNumber = 16)')
+        #
+        # r('RI <- result$RI')
+        # r('ID <- result$ID')
+        #
+        # result = r['result']
+        # ri = r['RI']
+        #
+        # with localconverter(ro.default_converter + pandas2ri.converter):
+        #     pd_df = ro.conversion.rpy2py(ri)
+        #
+        # print(pd_df)
+        #
+        # plot_r(R_PLOT_DIR + 'ri.png', 'plot(result, type = "ri", size = 50, plot_permutations = TRUE)')
+        # plot_r(R_PLOT_DIR + 'id.png', 'plot(result, type = "id", size = 50)')
+        # plot_r(R_PLOT_DIR + 'features.png', 'plot(result, type = "features", size = 10)')
+        # plot_r(R_PLOT_DIR + 'classifiers.png', 'plot(result, type = "cv", measure = "wacc")')
 
 
     elif algo == "corr_spearman":
         selected_features = correlaion_based_fs("spearman")
-        test_classifiers(data[selected_features], labels)
+        check_classifiers(data[selected_features], labels)
 
     elif algo == "corr_kendall":
         selected_features = correlaion_based_fs("kendall")
-        test_classifiers(data[selected_features], labels)
+        check_classifiers(data[selected_features], labels)
 
     elif algo == "pearson":
         selected_features = correlaion_based_fs("pearson")
-        test_classifiers(data[selected_features], labels)
+        check_classifiers(data[selected_features], labels)
 
     else:
         raise Exception("Unknown algorithm")

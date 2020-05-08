@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+import sys,os
+sys.path.append(os.path.abspath('../'))
 
 def get_best_k_features(forest, train_features, k, plot=True):
     importances = forest.feature_importances_

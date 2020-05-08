@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import sys,os
+sys.path.append(os.path.abspath('../'))
 
 
 def read_data(path, target):
