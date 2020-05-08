@@ -13,10 +13,23 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import os
+import sys
+
 from django.contrib import admin
 from django.urls import path
 
+sys.path.append(os.path.abspath('../'))
+sys.path.append(os.path.abspath('..'))
+from fst_server.views import fs_request
+
+
+
+class FS_Result():
+    result = [{"random forest": ["feature1", "feature2"]}]
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('featureselection/', )
+    path('featureselection/', fs_request)
 ]
