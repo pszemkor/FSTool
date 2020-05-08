@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {FeatureSelectionParameters} from '../shared/featureselectionparameters';
+import {FeatureSelectionResults, TEST_RESULT} from '../shared/featureselectionresults';
 
 @Component({
   selector: 'app-main',
@@ -9,14 +10,18 @@ import {FeatureSelectionParameters} from '../shared/featureselectionparameters';
 export class MainComponent implements OnInit {
 
   params: FeatureSelectionParameters;
+  results: FeatureSelectionResults;
 
-  constructor() { }
+  constructor() {
+  }
 
   ngOnInit(): void {
   }
 
-  updateParams(params: FeatureSelectionParameters): void{
+  updateParams(params: FeatureSelectionParameters): void {
     this.params = params;
+
+    this.results = TEST_RESULT;
   }
 
 }
