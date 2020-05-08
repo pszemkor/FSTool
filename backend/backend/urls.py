@@ -31,5 +31,5 @@ class FS_Result():
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('featureselection/', fs_request)
+    path('^featureselection', fs_request)
 ]
