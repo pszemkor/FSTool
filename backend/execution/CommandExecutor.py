@@ -14,12 +14,11 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
-
-from backend.execution.data import read_data
-from backend.execution.feature_util import get_best_k_features
 import sys, os
 
 sys.path.append(os.path.abspath('../'))
+from .data import read_data
+from .feature_util import get_best_k_features
 
 filterwarnings('ignore')
 
@@ -38,42 +37,41 @@ class CommandExecutor:
         self.request = request
 
     def execute(self):
-        algo = 'rf'
-        path = 'data.csv'
+        path = r'C:\Users\Acer\Desktop\FeatureSelection\backend\execution\data.csv'
         target = 'SEX'
         k = 10
         data, labels = read_data(path, target)
         selected_features = []
         classification_results = []
-        algoName = self.request['algoName']
+        algo = self.request['algoType']
 
-        if algo == "rf":
+        if algo == "RF":
             forest = ExtraTreesClassifier(n_estimators=250, random_state=0)
             train_features, test_features, train_labels, test_labels = train_test_split(data, labels,
                                                                                         test_size=0.2,
                                                                                         random_state=42)
             forest.fit(train_features, train_labels)
-            selected_features = get_best_k_features(forest, train_features, k)
+            selected_features, features = get_best_k_features(forest, train_features, k)
 
-            self.check_classifiers(data[selected_features], labels)
+            self.check_classifiers(data[features], labels)
         elif algo == "mcfs":
             pass
-        elif algo == "corr_spearman":
+        elif algo == "Spearman's correlation":
             selected_features = self.correlaion_based_fs("spearman", path, target)
             classification_results = self.check_classifiers(data[selected_features], labels)
 
-        elif algo == "corr_kendall":
+        elif algo == "Kendall correlation":
             selected_features = self.correlaion_based_fs("kendall", path, target)
             classification_results = self.check_classifiers(data[selected_features], labels)
 
-        elif algo == "pearson":
+        elif algo == "Pearson correlation":
             selected_features = self.correlaion_based_fs("pearson", path, target)
             classification_results = self.check_classifiers(data[selected_features], labels)
 
         else:
             raise Exception("Unknown algorithm")
 
-        return {'algoName': algoName, 'featuresRank': selected_features,
+        return {'algoName': algo, 'featuresRank': selected_features,
                 'classificationResults': classification_results}
 
     def check_classifiers(self, data, labels):
@@ -88,13 +86,11 @@ class CommandExecutor:
         cls_params = {"svm": {'kernel': ('linear', 'rbf', 'sigmoid', 'poly'),
                               'C': [.001, .01, .1, .5, 1, 2, 5, 10]},
                       "nn": {'activation': ['relu', 'tanh', 'logistic'],
-                             'hidden_layer_sizes': [(100,), (10, 50, 2), (50, 100, 2), (10, 10, 20, 2), (200,),
-                                                    (300, 2),
-                                                    (300,)],
+                             'hidden_layer_sizes': [(100,), (10, 50, 2), (50, 100, 2)],
                              'solver': ['adam'],
-                             'learning_rate': ['adaptive', 'invscaling', 'adaptive', 'constant'],
+                             'learning_rate': ['adaptive'],
                              'warm_start': [True, False]},
-                      "rf": {'n_estimators': [50, 100, 200, 300, 400, 500],
+                      "rf": {'n_estimators': [100, 200, 300, 400, 500],
                              'criterion': ['gini', 'entropy']}
                       }
 

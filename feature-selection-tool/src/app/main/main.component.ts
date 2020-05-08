@@ -18,8 +18,9 @@ export class MainComponent implements OnInit {
   }
 
   updateParams(params: FeatureSelectionParameters): void {
-    this.featureSelection.postRequest(this.params).subscribe(response => this.results = <FeatureSelectionResults>response);
     this.params = params;
+    this.featureSelection.postRequest(this.params).subscribe(response => this.results = <FeatureSelectionResults>response);
+
   }
 
 
