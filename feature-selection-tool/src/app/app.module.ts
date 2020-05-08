@@ -23,7 +23,9 @@ import { HeaderComponent } from './header/header.component';
 import { HighlightDirective } from './directives/highlight.directive';
 import { ParamsformComponent } from './paramsform/paramsform.component';
 
-import { baseURL } from './shared/baseurl'
+import { baseURL } from './shared/baseurl';
+import { ResultsComponent } from './results/results.component'
+import {MatTableModule} from '@angular/material/table';
 
 @NgModule({
   declarations: [
@@ -32,7 +34,8 @@ import { baseURL } from './shared/baseurl'
     MainComponent,
     HeaderComponent,
     HighlightDirective,
-    ParamsformComponent
+    ParamsformComponent,
+    ResultsComponent
   ],
   imports: [
     BrowserModule,
@@ -50,6 +53,7 @@ import { baseURL } from './shared/baseurl'
     MatButtonModule,
     MatProgressSpinnerModule,
     HttpClientModule,
+    MatTableModule,
   ],
   providers: [FeatureSelectionService],
   bootstrap: [AppComponent]

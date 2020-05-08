@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FeatureSelectionParameters } from '../shared/featureselectionparameters';
 import { FeatureSelectionService } from '../services/feature-selection.service';
-import { FeatureSelectionResults } from '../shared/featureselectionresults';
+import { FeatureSelectionResults, TEST_RESULT } from '../shared/featureselectionresults';
 
 @Component({
   selector: 'app-main',
