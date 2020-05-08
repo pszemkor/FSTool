@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { baseURL } from '../shared/baseurl';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FeatureSelectionParameters } from '../shared/featureselectionparameters'
+import {FeatureSelectionResults} from '../shared/featureselectionresults'
 
 @Injectable({
   providedIn: 'root'
@@ -16,8 +17,8 @@ export class FeatureSelectionService {
         'Content-Type': 'application/json'
       })
     };
-    console.log(baseURL + 'featureselection/')
-    return this.http.post<FeatureSelectionParameters>(baseURL + 'featureselection/', params, httpOptions);
+    console.log(baseURL + 'featureselection')
+    return this.http.post<FeatureSelectionResults>(baseURL + 'featureselection', params, httpOptions);
   }
 }
 
