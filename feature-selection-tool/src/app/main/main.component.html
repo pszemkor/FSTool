@@ -1,1 +1,10 @@
-<app-paramsform></app-paramsform>
+<div class="container"
+     fxLayout="column"
+     fxLayoutGap="10px"
+     fxLayoutAlign.gt-md="space-around center">
+  <app-paramsform (sendParams)="updateParams($event)"></app-paramsform>
+  <div [fxShow]="params" class="container" fxLayout="column" fxLayoutAlign.gt-md="space-around center">
+    <mat-spinner></mat-spinner>
+    <h2>Loading results. . . Please wait</h2>
+  </div>
+</div>
