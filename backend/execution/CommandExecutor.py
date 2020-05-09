@@ -105,7 +105,8 @@ class CommandExecutor:
             print('recall: ', recall)
             print('accuracy: ', accuracy)
             print('best params: ', cv.best_params_)
-            result.append({'f1': f1, 'recall': recall, 'accuracy': accuracy, 'clfName': k})
+            result.append(
+                {'f1': round(f1, 4), 'recall': round(recall, 4), 'accuracy': round(accuracy, 4), 'clfName': k})
 
         return result
 
