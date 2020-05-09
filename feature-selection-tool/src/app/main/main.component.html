@@ -8,7 +8,6 @@
   <div *ngIf= "params" [fxShow]="params" class="container" fxLayout="column" fxLayoutAlign.gt-md="space-around center">
     <mat-spinner></mat-spinner>
     <h2>Loading results. . . Please wait</h2>
-    <p>{{ results | json }}</p>
   </div>
 
   <app-results *ngIf= "results" [fxShow]="results" [results]="results"></app-results>

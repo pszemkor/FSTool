@@ -50,10 +50,12 @@ class CommandExecutor:
         elif algo == "Spearman's correlation":
             selected_features, classification_results = self.correlation("spearman", path, data, labels, target,
                                                                          requested_classifiers)
-
+            resultImgs.append({'name': 'Plot', 'image': '/assets/img/heatmap_spearman.png'})
         elif algo == "Kendall correlation":
             selected_features, classification_results = self.correlation("kendall", path, data, labels, target,
                                                                          requested_classifiers)
+            resultImgs.append({'name': 'Plot', 'image': '/assets/img/kendalls_heatmap.png'})
+
         elif algo == "Pearson correlation":
             selected_features, classification_results = self.correlation("pearson", path, data, labels, target,
                                                                          requested_classifiers)
@@ -61,7 +63,8 @@ class CommandExecutor:
             raise Exception("Unknown algorithm")
 
         return {'algoName': algo, 'featuresRank': selected_features,
-                'classificationResults': classification_results}
+                'classificationResults': classification_results,
+                'resultImgs': resultImgs}
 
     def correlation(self, kind, path, data, labels, target, requested_classifiers):
         cols = self.correlaion_based_fs(kind, path, target)
