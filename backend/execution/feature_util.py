@@ -27,14 +27,14 @@ def get_best_k_features(forest, train_features, k, plot=True):
         selected_features.append(
             {'index': i, 'name': train_features.columns[indices[f]], 'score': importances[indices[f]]})
 
-    # if plot:
-    #     x_pos = [i for i, _ in enumerate(x)]
-    #     plt.barh(x_pos, y, color='green')
-    #     # xerr=std**2
-    #     plt.ylabel("Feature")
-    #     plt.xlabel("Importance")
-    #     plt.title(str(k) + " selected features")
-    #     plt.yticks(x_pos, x)
-    #     plt.show()
-
+    if plot:
+        x_pos = [i for i, _ in enumerate(x)]
+        plt.barh(x_pos, y, color='green')
+        # xerr=std**2
+        plt.ylabel("Feature")
+        plt.xlabel("Importance")
+        plt.title(str(k) + " selected features")
+        plt.yticks(x_pos, x)
+        # plt.show()
+        plt.savefig(r'../../rf_plot.png')
     return selected_features, x

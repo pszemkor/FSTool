@@ -52,8 +52,7 @@ class CommandExecutor:
                                                                                         random_state=42)
             forest.fit(train_features, train_labels)
             selected_features, features = get_best_k_features(forest, train_features, k)
-
-            self.check_classifiers(data[features], labels)
+            classification_results = self.check_classifiers(data[features], labels)
         elif algo == "mcfs":
             pass
         elif algo == "Spearman's correlation":
