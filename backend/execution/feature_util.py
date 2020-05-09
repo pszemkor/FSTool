@@ -35,6 +35,5 @@ def get_best_k_features(forest, train_features, k, plot=True):
         plt.xlabel("Importance")
         plt.title(str(k) + " selected features")
         plt.yticks(x_pos, x)
-        # plt.show()
-        plt.savefig(r'../../rf_plot.png')
-    return selected_features, x
+        # plt.savefig(r'rf_plot.png')
+    return selected_features, '/assets/img/rf_plot.png'

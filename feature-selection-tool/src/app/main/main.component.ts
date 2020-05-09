@@ -20,7 +20,7 @@ export class MainComponent implements OnInit {
   onSubmit(params: FeatureSelectionParameters): void {
     this.params = params;
     this.results = null;
-    this.featureSelection.postRequest(this.params).subscribe(response => 
+    this.featureSelection.postRequest(this.params).subscribe(response =>
       {this.results = <FeatureSelectionResults>response; this.params = null; });
 
   }
