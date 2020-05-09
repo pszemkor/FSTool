@@ -17,9 +17,11 @@ export class MainComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  updateParams(params: FeatureSelectionParameters): void {
+  onSubmit(params: FeatureSelectionParameters): void {
     this.params = params;
-    this.featureSelection.postRequest(this.params).subscribe(response => this.results = <FeatureSelectionResults>response);
+    this.results = null;
+    this.featureSelection.postRequest(this.params).subscribe(response => 
+      {this.results = <FeatureSelectionResults>response; this.params = null; });
 
   }
 

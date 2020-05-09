@@ -2,11 +2,14 @@
      fxLayout="column"
      fxLayoutGap="10px"
      fxLayoutAlign.gt-md="space-around center">
-  <app-paramsform (sendParams)="updateParams($event)"></app-paramsform>
-  <div [fxShow]="params" class="container" fxLayout="column" fxLayoutAlign.gt-md="space-around center">
+  <app-paramsform (sendParams)="onSubmit($event)"></app-paramsform>
+
+
+  <div *ngIf= "params" [fxShow]="params" class="container" fxLayout="column" fxLayoutAlign.gt-md="space-around center">
     <mat-spinner></mat-spinner>
     <h2>Loading results. . . Please wait</h2>
     <p>{{ results | json }}</p>
   </div>
-  <app-results [fxShow]="results" [results]="results"></app-results>
+
+  <app-results *ngIf= "results" [fxShow]="results" [results]="results"></app-results>
 </div>
