@@ -1,12 +1,6 @@
 from warnings import filterwarnings
-
 import matplotlib.pyplot as plt
-# import rpy2.robjects as ro
 import seaborn as sns
-# from rpy2.robjects import pandas2ri
-# from rpy2.robjects import r
-# from rpy2.robjects.conversion import localconverter
-# from rpy2.robjects.packages import importr
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score, recall_score
@@ -22,16 +16,8 @@ from .feature_util import get_best_k_features
 
 filterwarnings('ignore')
 
-R_PLOT_DIR = '../../../r_plot/'
 
-
-# def plot_r(filename, plot_script):
-#     grdevices = importr('grDevices')
-#     grdevices.png(file=filename, width=700, height=700)
-#     r(plot_script)
-#     grdevices.dev_off()
-
-
+# todo: this class needs refactor -> apply command pattern to fs approaches, apply SRP rule
 class CommandExecutor:
     def __init__(self, request):
         self.request = request
@@ -44,6 +30,9 @@ class CommandExecutor:
         selected_features = []
         classification_results = []
         algo = self.request['algoType']
+        requested_classifiers = self.extract_req_clsf()
+        resultImgs = []
+        image_path = None
 
         if algo == "RF":
             forest = ExtraTreesClassifier(n_estimators=250, random_state=0)
@@ -51,60 +40,66 @@ class CommandExecutor:
                                                                                         test_size=0.2,
                                                                                         random_state=42)
             forest.fit(train_features, train_labels)
-            selected_features, features = get_best_k_features(forest, train_features, k)
-            classification_results = self.check_classifiers(data[features], labels)
+            selected_features, image_path = get_best_k_features(forest, train_features, k)
+            columns = list(map(lambda sf: sf['name'], selected_features))
+            classification_results = self.check_classifiers(data[columns], labels, requested_classifiers)
+            resultImgs.append({'name': 'Plot', 'image': image_path})
         elif algo == "mcfs":
+            # todo: mcfs is currently unavailable for windows
             pass
         elif algo == "Spearman's correlation":
-            selected_features = self.correlaion_based_fs("spearman", path, target)
-            classification_results = self.check_classifiers(data[selected_features], labels)
+            selected_features, classification_results = self.correlation("spearman", path, data, labels, target,
+                                                                         requested_classifiers)
 
         elif algo == "Kendall correlation":
-            selected_features = self.correlaion_based_fs("kendall", path, target)
-            classification_results = self.check_classifiers(data[selected_features], labels)
-
+            selected_features, classification_results = self.correlation("kendall", path, data, labels, target,
+                                                                         requested_classifiers)
         elif algo == "Pearson correlation":
-            selected_features = self.correlaion_based_fs("pearson", path, target)
-            classification_results = self.check_classifiers(data[selected_features], labels)
-
+            selected_features, classification_results = self.correlation("pearson", path, data, labels, target,
+                                                                         requested_classifiers)
         else:
             raise Exception("Unknown algorithm")
 
         return {'algoName': algo, 'featuresRank': selected_features,
                 'classificationResults': classification_results}
 
-    def check_classifiers(self, data, labels):
+    def correlation(self, kind, path, data, labels, target, requested_classifiers):
+        cols = self.correlaion_based_fs(kind, path, target)
+        selected_features = []
+        classification_results = self.check_classifiers(data[cols], labels, requested_classifiers)
+        for i, f in enumerate(cols):
+            selected_features.append({'name': f, 'score': 1, 'index': i})
+        return selected_features, classification_results
+
+    def check_classifiers(self, data, labels, requested_classifiers):
         X_train, X_test, Y_train, Y_test = train_test_split(data, labels,
                                                             test_size=0.2,
                                                             random_state=42)
         result = []
-        svm = SVC()
-        nn = MLPClassifier()
-        rf = RandomForestClassifier()
-        classifiers = {"svm": svm, "nn": nn, "rf": rf}
-        cls_params = {"svm": {'kernel': ('linear', 'rbf', 'sigmoid', 'poly'),
-                              'C': [.001, .01, .1, .5, 1, 2, 5, 10]},
-                      "nn": {'activation': ['relu', 'tanh', 'logistic'],
-                             'hidden_layer_sizes': [(100,), (10, 50, 2), (50, 100, 2)],
-                             'solver': ['adam'],
-                             'learning_rate': ['adaptive'],
-                             'warm_start': [True, False]},
-                      "rf": {'n_estimators': [100, 200, 300, 400, 500],
-                             'criterion': ['gini', 'entropy']}
-                      }
+        classifiers = {"svm": SVC(), "nn": MLPClassifier(), "rf": RandomForestClassifier()}
+        svm_params = {'kernel': ('linear', 'rbf', 'sigmoid', 'poly'),
+                      'C': [.001, .01, .1, .5, 1, 2, 5, 10]}
+
+        nn_params = {'activation': ['relu', 'tanh', 'logistic'],
+                     'hidden_layer_sizes': [(100,), (10, 50, 2), (50, 100, 2)],
+                     'solver': ['adam'],
+                     'learning_rate': ['adaptive'],
+                     'warm_start': [True, False]}
+
+        rf_params = {'n_estimators': [100, 200, 300, 400, 500],
+                     'criterion': ['gini', 'entropy']}
+        cls_params = {'svm': svm_params, 'rf': rf_params, 'nn': nn_params}
 
         for k, v in classifiers.items():
+            if k not in requested_classifiers:
+                continue
             cv = GridSearchCV(v, cls_params[k], cv=5)
             cv.fit(X_train, Y_train)
             pred = cv.predict(X_test)
-            print("***** ", k, " ****")
+            print("***** {} *****".format(k))
             f1 = f1_score(Y_test, pred, average="macro")
             accuracy = accuracy_score(Y_test, pred)
             recall = recall_score(Y_test, pred, average="macro")
-            print('f1: ', f1)
-            print('recall: ', recall)
-            print('accuracy: ', accuracy)
-            print('best params: ', cv.best_params_)
             result.append(
                 {'f1': round(f1, 4), 'recall': round(recall, 4), 'accuracy': round(accuracy, 4), 'clfName': k})
 
@@ -119,7 +114,17 @@ class CommandExecutor:
             for j, f2 in enumerate(data.columns):
                 if i > j and abs(corr.iloc[i, j]) > threshold:
                     to_drop.append(f1)
-        plt.subplots(figsize=(50, 50))
-        sns.heatmap(corr, vmax=1.0, center=0, square=True, linewidths=.5, cbar_kws={"shrink": .70})
-        plt.show()
+        # plt.subplots(figsize=(50, 50))
+        # sns.heatmap(corr, vmax=1.0, center=0, square=True, linewidths=.5, cbar_kws={"shrink": .70})
+        # plt.show()
         return list(set(data.columns) - set(to_drop))
+
+    def extract_req_clsf(self):
+        result = []
+        if self.request['svm']:
+            result.append('svm')
+        if self.request['nn']:
+            result.append('nn')
+        if self.request['rf']:
+            result.append('rf')
+        return result
