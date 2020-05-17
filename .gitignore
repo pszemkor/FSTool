@@ -47,3 +47,5 @@ Thumbs.db
 db.sqlite*
 data.csv
 *.pyc
+
+__pycache__
