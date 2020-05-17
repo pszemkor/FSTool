@@ -13,6 +13,7 @@ import sys, os
 sys.path.append(os.path.abspath('../'))
 from .data import read_data
 from .feature_util import get_best_k_features
+from .results import *
 
 filterwarnings('ignore')
 
@@ -31,8 +32,7 @@ class CommandExecutor:
         classification_results = []
         algo = self.request['algoType']
         requested_classifiers = self.extract_req_clsf()
-        resultImgs = []
-        image_path = None
+        resultImgs = None
 
         if algo == "RF":
             forest = ExtraTreesClassifier(n_estimators=250, random_state=0)
@@ -41,9 +41,9 @@ class CommandExecutor:
                                                                                         random_state=42)
             forest.fit(train_features, train_labels)
             selected_features, image_path = get_best_k_features(forest, train_features, k)
-            columns = list(map(lambda sf: sf['name'], selected_features))
+            columns = list(map(lambda sf: sf.name, selected_features))
             classification_results = self.check_classifiers(data[columns], labels, requested_classifiers)
-            resultImgs.append({'name': 'Plot', 'image': image_path})
+            resultImgs = [ResultImg("plt", image_path)]
         elif algo == "mcfs":
             # todo: mcfs is currently unavailable for windows
             pass
@@ -62,9 +62,7 @@ class CommandExecutor:
         else:
             raise Exception("Unknown algorithm")
 
-        return {'algoName': algo, 'featuresRank': selected_features,
-                'classificationResults': classification_results,
-                'resultImgs': resultImgs}
+        return FSResponse(algo, resultImgs, selected_features, classification_results)
 
     def correlation(self, kind, path, data, labels, target, requested_classifiers):
         cols = self.correlaion_based_fs(kind, path, target)
@@ -103,8 +101,7 @@ class CommandExecutor:
             f1 = f1_score(Y_test, pred, average="macro")
             accuracy = accuracy_score(Y_test, pred)
             recall = recall_score(Y_test, pred, average="macro")
-            result.append(
-                {'f1': round(f1, 4), 'recall': round(recall, 4), 'accuracy': round(accuracy, 4), 'clfName': k})
+            result.append(ClassificationResult(k, round(accuracy, 4), round(f1, 4), round(recall, 4)))
 
         return result
 

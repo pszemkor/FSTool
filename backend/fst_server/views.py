@@ -1,8 +1,6 @@
 import sys, os
-import json
-from django.http import JsonResponse
+from django.http import HttpResponse
 from rest_framework.decorators import api_view
-from .response import mock
 
 sys.path.append(os.path.abspath('../'))
 sys.path.append(os.path.abspath('..'))
@@ -15,7 +13,7 @@ def fs_request(request):
         print(request.data)
         executor = CommandExecutor(request.data)
 
-        # print(request.data)
         execute = executor.execute()
-        print(json.dumps(execute))
-        return JsonResponse(execute, safe=False)
+        json = execute.toJSON()
+        print(json)
+        return HttpResponse(json)
