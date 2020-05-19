@@ -30,7 +30,7 @@
 
           <h3>Select CSV file</h3>
           <p>
-            <input class="file-input" formControlName="csvPath" type="file">
+            <input formControlName="csvPath" type="file" (change)="changeListener($event)">
           </p>
 
           <div fxLayoutAlign="center">
