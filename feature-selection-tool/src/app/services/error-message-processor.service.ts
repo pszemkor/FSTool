@@ -15,7 +15,7 @@ export class ErrorMessageProcessorService {
     if (errorResponse instanceof ErrorEvent) {
       errorMessage = errorResponse.error.message;
     } else {
-      errorMessage = `${errorResponse.status || ''} ${errorResponse.statusText || ''} ${errorResponse.error}`;
+      errorMessage = `${errorResponse.status || ''} ${errorResponse.statusText || ''} Server error`;
     }
 
     return throwError(errorMessage);

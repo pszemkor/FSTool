@@ -8,9 +8,9 @@
     <h2>Loading results. . . Please wait</h2>
   </div>
 
-  <div fxFlex *ngIf="errorMessage" >
-    <h2>Error</h2>
-    <h4>{{errorMessage}}</h4>
+  <div fxFlex *ngIf="errorMessage" class="error_color" >
+    <h1>Error</h1>
+    <h2>{{errorMessage}}</h2>
   </div>
 
   <app-results *ngIf="results" [fxShow]="results" [results]="results"></app-results>

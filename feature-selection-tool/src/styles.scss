@@ -1,5 +1,4 @@
-
-@import '~@angular/material/theming';
+@import "~@angular/material/theming";
 
 @include mat-core();
 $hello-primary: mat-palette($mat-indigo);
@@ -18,51 +17,59 @@ $hello-theme: mat-light-theme($hello-primary, $hello-accent, $hello-warn);
 
 /* You can add global styles to this file, and also import other style files */
 
-html, body { height: 100%; }
-body { padding: 0; margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
-
-
-.container{
-    margin: 20px;
-    display: flex;
+html,
+body {
+  height: 100%;
+}
+body {
+  padding: 0;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
+.container {
+  margin: 20px;
+  display: flex;
+}
 
 $lt-gray: #ddd;
 $background-dark: rgb(66, 4, 212);
-$background-light: #9575CD;
+$background-light: #9575cd;
 $background-pale: rgb(90, 150, 219);
-$primary-color-dark:   #512DA8;
-$primary-color:        #673AB7;
-$primary-color-light:  #D1C4E9;
-$primary-color-text:   #FFFFFF;
-$accent-color:         #FFC107;
-$primary-text-color:   #212121;
+$primary-color-dark: #512da8;
+$primary-color: #673ab7;
+$primary-color-light: #d1c4e9;
+$primary-color-text: #ffffff;
+$accent-color: #ffc107;
+$primary-text-color: #212121;
 $secondary-text-color: #757575;
-$divider-color:        #BDBDBD;
+$divider-color: #bdbdbd;
 
 @mixin zero-margin($pad-up-down, $pad-left-right) {
-    margin: 0px auto;
-    padding: $pad-up-down $pad-left-right;
+  margin: 0px auto;
+  padding: $pad-up-down $pad-left-right;
 }
 
 .background-primary {
-    background-color: $background-dark!important;
-  }
-.background-accent {
-    background-color: $accent-color!important;
-  }
-.text-floral-white {
-    color: floralwhite!important;
+  background-color: $background-dark !important;
 }
-.text_black{
-    color: black!important;
+.background-accent {
+  background-color: $accent-color !important;
+}
+.text-floral-white {
+  color: floralwhite !important;
+}
+.error_color {
+  color: rgb(212, 4, 4);
+}
+
+.text_black {
+  color: black !important;
 }
 
 .flex-spacer {
   flex: 1 1 auto;
 }
-
 
 .highlight {
   background-color: $background-pale;
@@ -71,14 +78,13 @@ $divider-color:        #BDBDBD;
   transform: scale(1.01);
 }
 .full-width {
-    width: 95%
+  width: 95%;
 }
 
 .half-width {
-    width: 45%
+  width: 45%;
 }
 
 .form-size {
-    width: 75%
+  width: 75%;
 }
-
