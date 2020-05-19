@@ -1,14 +1,17 @@
-<div class="container"
-     fxLayout="column"
-     fxLayoutGap="10px"
-     fxLayoutAlign.gt-md="space-around center">
+<div class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign.gt-md="space-around center">
   <app-paramsform (sendParams)="onSubmit($event)"></app-paramsform>
 
 
-  <div *ngIf= "params" [fxShow]="params" class="container" fxLayout="column" fxLayoutAlign.gt-md="space-around center">
+  <div *ngIf="params" [fxShow]="params" class="container" fxLayout="column"
+    fxLayoutAlign.gt-md="space-around center">
     <mat-spinner></mat-spinner>
     <h2>Loading results. . . Please wait</h2>
   </div>
 
-  <app-results *ngIf= "results" [fxShow]="results" [results]="results"></app-results>
+  <div fxFlex *ngIf="errorMessage" >
+    <h2>Error</h2>
+    <h4>{{errorMessage}}</h4>
+  </div>
+
+  <app-results *ngIf="results" [fxShow]="results" [results]="results"></app-results>
 </div>

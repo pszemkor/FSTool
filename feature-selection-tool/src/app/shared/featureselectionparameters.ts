@@ -3,12 +3,12 @@ export class FeatureSelectionParameters {
   rf: boolean;
   svm: boolean;
   nn: boolean;
-  csvPath: string;
+  csv: string;
 }
 
 export const AlgoType = [
   'RF',
-  'MCFS',
+  // 'MCFS',
   'Kendall correlation',
   'Spearman\'s correlation',
   'Pearson correlation',
