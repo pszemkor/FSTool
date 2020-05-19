@@ -3,6 +3,7 @@ import numpy as np
 import sys, os
 
 sys.path.append(os.path.abspath('../'))
+from .results import SelectedFeature
 
 
 def get_best_k_features(forest, train_features, k, plot=True):
@@ -24,8 +25,7 @@ def get_best_k_features(forest, train_features, k, plot=True):
         print("%d. feature: %s (%f)" % (f + 1, train_features.columns[indices[f]], importances[indices[f]]))
         x.append(train_features.columns[indices[f]])
         y.append(importances[indices[f]])
-        selected_features.append(
-            {'index': i, 'name': train_features.columns[indices[f]], 'score': importances[indices[f]]})
+        selected_features.append(SelectedFeature(i, train_features.columns[indices[f]], importances[indices[f]]))
 
     if plot:
         x_pos = [i for i, _ in enumerate(x)]

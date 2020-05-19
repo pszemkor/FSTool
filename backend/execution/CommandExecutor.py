@@ -13,6 +13,7 @@ import sys, os
 sys.path.append(os.path.abspath('../'))
 from .data import read_data
 from .feature_util import get_best_k_features
+from .results import *
 
 filterwarnings('ignore')
 
@@ -32,29 +33,20 @@ class CommandExecutor:
         algo = self.request['algoType']
         requested_classifiers = self.extract_req_clsf()
         resultImgs = []
-        image_path = None
-
         if algo == "RF":
-            forest = ExtraTreesClassifier(n_estimators=250, random_state=0)
-            train_features, test_features, train_labels, test_labels = train_test_split(data, labels,
-                                                                                        test_size=0.2,
-                                                                                        random_state=42)
-            forest.fit(train_features, train_labels)
-            selected_features, image_path = get_best_k_features(forest, train_features, k)
-            columns = list(map(lambda sf: sf['name'], selected_features))
-            classification_results = self.check_classifiers(data[columns], labels, requested_classifiers)
-            resultImgs.append({'name': 'Plot', 'image': image_path})
+            classification_results, resultImgs, selected_features = self.execute_rf_fs(data, k, labels,
+                                                                                       requested_classifiers)
         elif algo == "mcfs":
             # todo: mcfs is currently unavailable for windows
             pass
         elif algo == "Spearman's correlation":
             selected_features, classification_results = self.correlation("spearman", path, data, labels, target,
                                                                          requested_classifiers)
-            resultImgs.append({'name': 'Plot', 'image': '/assets/img/heatmap_spearman.png'})
+            resultImgs.append(ResultImg('Plot', '/assets/img/heatmap_spearman.png'))
         elif algo == "Kendall correlation":
             selected_features, classification_results = self.correlation("kendall", path, data, labels, target,
                                                                          requested_classifiers)
-            resultImgs.append({'name': 'Plot', 'image': '/assets/img/kendalls_heatmap.png'})
+            resultImgs.append(ResultImg('Plot', '/assets/img/kendalls_heatmap.png'))
 
         elif algo == "Pearson correlation":
             selected_features, classification_results = self.correlation("pearson", path, data, labels, target,
@@ -62,16 +54,27 @@ class CommandExecutor:
         else:
             raise Exception("Unknown algorithm")
 
-        return {'algoName': algo, 'featuresRank': selected_features,
-                'classificationResults': classification_results,
-                'resultImgs': resultImgs}
+        return FSResponse(algo, resultImgs, selected_features, classification_results)
+
+    def execute_rf_fs(self, data, k, labels, requested_classifiers):
+        forest = ExtraTreesClassifier(n_estimators=250, random_state=0)
+        train_features, test_features, train_labels, test_labels = train_test_split(data, labels,
+                                                                                    test_size=0.2,
+                                                                                    random_state=42)
+        forest.fit(train_features, train_labels)
+        selected_features, image_path = get_best_k_features(forest, train_features, k)
+        columns = list(map(lambda sf: sf.name, selected_features))
+        classification_results = self.check_classifiers(data[columns], labels, requested_classifiers)
+        resultImgs = [ResultImg("plt", image_path)]
+        return classification_results, resultImgs, selected_features
 
     def correlation(self, kind, path, data, labels, target, requested_classifiers):
         cols = self.correlaion_based_fs(kind, path, target)
         selected_features = []
         classification_results = self.check_classifiers(data[cols], labels, requested_classifiers)
         for i, f in enumerate(cols):
-            selected_features.append({'name': f, 'score': 1, 'index': i})
+            # todo write correlation as score
+            selected_features.append(SelectedFeature(i, f, 1))
         return selected_features, classification_results
 
     def check_classifiers(self, data, labels, requested_classifiers):
@@ -103,8 +106,7 @@ class CommandExecutor:
             f1 = f1_score(Y_test, pred, average="macro")
             accuracy = accuracy_score(Y_test, pred)
             recall = recall_score(Y_test, pred, average="macro")
-            result.append(
-                {'f1': round(f1, 4), 'recall': round(recall, 4), 'accuracy': round(accuracy, 4), 'clfName': k})
+            result.append(ClassificationResult(k, round(accuracy, 4), round(f1, 4), round(recall, 4)))
 
         return result
 
