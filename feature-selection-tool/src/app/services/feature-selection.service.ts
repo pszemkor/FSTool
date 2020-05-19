@@ -17,7 +17,6 @@ export class FeatureSelectionService {
         'Content-Type': 'application/json'
       })
     };
-    console.log(baseURL + 'featureselection')
     return this.http.post<FeatureSelectionResults>(baseURL + 'featureselection', params, httpOptions);
   }
 }
