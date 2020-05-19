@@ -13,7 +13,6 @@ export class ParamsformComponent implements OnInit {
   paramsForm: FormGroup;
   params: FeatureSelectionParameters;
   algoType = AlgoType;
-  result: FeatureSelectionResults;
   @Output() sendParams: EventEmitter<FeatureSelectionParameters> = new EventEmitter<FeatureSelectionParameters>();
 
   constructor(private fb: FormBuilder) {
@@ -30,7 +29,7 @@ export class ParamsformComponent implements OnInit {
       rf: false,
       svm: false,
       nn: false,
-      csvPath: null,
+      csvPath: '',
     });
   }
 
@@ -48,7 +47,7 @@ export class ParamsformComponent implements OnInit {
       rf: false,
       svm: false,
       nn: false,
-      csvPath: null
+      csvPath: '',
     });
   }
 
@@ -62,7 +61,6 @@ export class ParamsformComponent implements OnInit {
 
     myReader.onloadend = (e) => {
       this.params.csvBase64 = myReader.result;
-      console.log(this.params.csvBase64);
     };
 
     myReader.readAsDataURL(file);
