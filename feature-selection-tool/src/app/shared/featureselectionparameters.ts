@@ -3,7 +3,7 @@ export class FeatureSelectionParameters {
   rf: boolean;
   svm: boolean;
   nn: boolean;
-  csv: string;
+  csvBase64: string | ArrayBuffer;
 }
 
 export const AlgoType = [

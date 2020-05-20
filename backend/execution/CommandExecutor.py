@@ -24,10 +24,9 @@ class CommandExecutor:
         self.request = request
 
     def execute(self):
-        path = r'C:\Users\Acer\Desktop\FeatureSelection\backend\execution\data.csv'
         target = 'SEX'
         k = 10
-        data, labels = read_data(path, target)
+        data, labels = read_data(self.request['csvBase64'], target)
         selected_features = []
         classification_results = []
         algo = self.request['algoType']
@@ -40,16 +39,19 @@ class CommandExecutor:
             # todo: mcfs is currently unavailable for windows
             pass
         elif algo == "Spearman's correlation":
-            selected_features, classification_results = self.correlation("spearman", path, data, labels, target,
+            selected_features, classification_results = self.correlation("spearman", self.request['csvBase64'], data,
+                                                                         labels, target,
                                                                          requested_classifiers)
             resultImgs.append(ResultImg('Plot', '/assets/img/heatmap_spearman.png'))
         elif algo == "Kendall correlation":
-            selected_features, classification_results = self.correlation("kendall", path, data, labels, target,
+            selected_features, classification_results = self.correlation("kendall", self.request['csvBase64'], data,
+                                                                         labels, target,
                                                                          requested_classifiers)
             resultImgs.append(ResultImg('Plot', '/assets/img/kendalls_heatmap.png'))
 
         elif algo == "Pearson correlation":
-            selected_features, classification_results = self.correlation("pearson", path, data, labels, target,
+            selected_features, classification_results = self.correlation("pearson", self.request['csvBase64'], data,
+                                                                         labels, target,
                                                                          requested_classifiers)
         else:
             raise Exception("Unknown algorithm")
@@ -68,8 +70,8 @@ class CommandExecutor:
         resultImgs = [ResultImg("plt", image_path)]
         return classification_results, resultImgs, selected_features
 
-    def correlation(self, kind, path, data, labels, target, requested_classifiers):
-        cols = self.correlaion_based_fs(kind, path, target)
+    def correlation(self, kind, data_base64, data, labels, target, requested_classifiers):
+        cols = self.correlaion_based_fs(kind, data_base64, target)
         selected_features = []
         classification_results = self.check_classifiers(data[cols], labels, requested_classifiers)
         for i, f in enumerate(cols):
@@ -110,8 +112,8 @@ class CommandExecutor:
 
         return result
 
-    def correlaion_based_fs(self, method, path, target, threshold=0.9):
-        data, labels = read_data(path, target)
+    def correlaion_based_fs(self, method, data_base64, target, threshold=0.9):
+        data, labels = read_data(data_base64, target)
         corr = data.corr(method=method)
 
         to_drop = []
