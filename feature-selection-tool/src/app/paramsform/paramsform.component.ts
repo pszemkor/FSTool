@@ -34,7 +34,6 @@ export class ParamsformComponent implements OnInit {
   }
 
   onSubmit() {
-    this.params = new FeatureSelectionParameters();
     this.params.algoType = this.paramsForm.value.algoType;
     this.params.rf = this.paramsForm.value.rf;
     this.params.svm = this.paramsForm.value.svm;
