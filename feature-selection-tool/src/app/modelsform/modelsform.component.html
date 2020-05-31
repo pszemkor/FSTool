@@ -3,9 +3,7 @@
         <mat-card>
             <div fxFlex fxFlexOffset="20px" class="form-size">
                 <h2>Select model</h2>
-                <p>{{ paramsForm.value | json }} {{ paramsForm.status | json }}</p>
-
-                <form novalidate [formGroup]="paramsForm" (ngSubmit)="onSubmit()">
+                <form novalidate [formGroup]="paramsForm" (ngSubmit)="onSubmit()" class="mat-size">
                     <p>
                         Model
                         <mat-select placeholder="Model" formControlName="model">

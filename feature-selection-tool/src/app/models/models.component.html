@@ -1,1 +1,16 @@
-<p>models works!</p>
+<div class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign.gt-md="space-around center">
+    <app-modelsform (sendParams)="onSubmit($event)"></app-modelsform>
+
+
+    <div *ngIf="params" [fxShow]="params" class="container" fxLayout="column" fxLayoutAlign.gt-md="space-around center">
+        <mat-spinner></mat-spinner>
+        <h2>Loading results. . . Please wait</h2>
+    </div>
+
+    <div fxFlex *ngIf="errorMessage" class="error_color">
+        <h1>Error</h1>
+        <h2>{{errorMessage}}</h2>
+    </div>
+
+    <app-results *ngIf="results" [fxShow]="results" [results]="results"></app-results>
+</div>

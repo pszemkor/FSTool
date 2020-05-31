@@ -17,9 +17,12 @@ export class ModelsformComponent implements OnInit {
   @Output() sendParams: EventEmitter<ClassificationParams> = new EventEmitter<ClassificationParams>();
 
   constructor(private fb: FormBuilder, private modelService: ModelsService) {
-    this.modelService.getAvailableModels()
-      .subscribe(models => this.models = models,
-        error => { this.errorMessage = error; this.params = null; });
+    this.createForm();
+    // this.modelService.getAvailableModels()
+    //   .subscribe(models => this.models = models,
+    //     error => { this.errorMessage = error; this.params = null; });
+    this.models = [{name: "random forest #1", id: "1", details: "lalala", timestamp:new Date()},
+    {name: "rmcfs #1", id: "2", details: "lalala", timestamp:new Date()}]
   }
 
   ngOnInit(): void {
