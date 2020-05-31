@@ -26,6 +26,7 @@ import { ParamsformComponent } from './paramsform/paramsform.component';
 import { baseURL } from './shared/baseurl';
 import { ResultsComponent } from './results/results.component'
 import {MatTableModule} from '@angular/material/table';
+import { ModelsComponent } from './models/models.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +36,8 @@ import {MatTableModule} from '@angular/material/table';
     HeaderComponent,
     HighlightDirective,
     ParamsformComponent,
-    ResultsComponent
+    ResultsComponent,
+    ModelsComponent
   ],
   imports: [
     BrowserModule,
