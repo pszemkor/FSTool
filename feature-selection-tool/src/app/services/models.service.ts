@@ -19,8 +19,8 @@ export class ModelsService {
         'Content-Type': 'application/json'
       })
     };
-    return this.http.get<Model>(baseURL + "/models")
+    return this.http.get<Model[]>(baseURL + "/models")
       .pipe(catchError(this.errorProcessor.handleError));
   }
 }
-}
+
