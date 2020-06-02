@@ -1,4 +1,4 @@
 export class ClassificationParams{
-    model: string;
+    modelID: string;
     csvBase64: string | ArrayBuffer;
 }

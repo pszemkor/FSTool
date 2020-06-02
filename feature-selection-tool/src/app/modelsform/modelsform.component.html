@@ -7,9 +7,13 @@
                     <p>
                         Model
                         <mat-select placeholder="Model" formControlName="model">
-                            <mat-option *ngFor="let model of models" [value]="model">
-                                {{ model.name }}
-                            </mat-option>
+                            <div *ngIf="models && models.length > 0">
+                                <mat-option *ngFor="let model of models" [value]="model">
+                                    <b>{{model.name}}</b>
+                                    {{ " (id: "+  model.id +")," + " created at: "  }}
+                                    {{ model.creation_timestamp | date: 'hh:mm:ss MMM dd, yyyy'}}
+                                </mat-option>
+                            </div>
                         </mat-select>
                     </p>
 
