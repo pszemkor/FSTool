@@ -16,7 +16,6 @@ from fst_server.models import Classifier
 sys.path.append(os.path.abspath('../'))
 from .data import read_evaluation_data
 
-
 filterwarnings('ignore')
 
 
@@ -26,9 +25,15 @@ class ModelEvaluator:
         self.request = request
 
     def execute(self):
-        data, labels = read_evaluation_data(self.request['csvBase64'])
+        data = read_evaluation_data(self.request['csvBase64'])
 
-        cls_loaded = Classifier.objects.get(id=int(self.request['modelId']))
+        cls_loaded = Classifier.objects.get(id=int(self.request['modelID']))
         cv = pickle.loads(cls_loaded.cls_pickle)
+        print(data)
+        # todo select only those features that were used in training
+        y = cv.predict(data.iloc[:, :10])
+        print(y)
 
-        print("Classifier loaded!")
+        clf_results = [{'id': i, 'prediction': res} for i, res in enumerate(y)]
+
+        return clf_results

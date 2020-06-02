@@ -39,7 +39,11 @@ def get_models(request):
 def classify(request):
     if request.method == "POST":
         print(request.data)
+        modelID = request.data['modelID']
         evaluator = ModelEvaluator(request.data)
-        evaluation_data = {}
-        # evaluation_data = evaluator.execute()
-        return JsonResponse(evaluation_data)
+        evaluation_results = evaluator.execute()
+        to_json = {
+            'classifier': Classifier.objects.get(id=modelID).name,
+            'results': evaluation_results
+        }
+        return JsonResponse(to_json)
