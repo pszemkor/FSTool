@@ -20,14 +20,15 @@ def fs_request(request):
 
 
 @api_view(['GET', 'POST'])
-def get_classifiers(request):
+def get_models(request):
+    models = []
     if request.method == 'GET':
-        classifiers = []
         for classifier in Classifier.objects.all():
             clf_without_blob = {
+                'id': classifier.id,
                 'name': classifier.name,
                 'details': classifier.details,
                 'creation_timestamp': classifier.creation_timestamp
             }
-            classifiers.append(clf_without_blob)
-    return JsonResponse({'classifiers': classifiers})
+            models.append(clf_without_blob)
+    return JsonResponse({'models': models})
