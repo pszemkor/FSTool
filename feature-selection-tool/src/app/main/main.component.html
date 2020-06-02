@@ -2,13 +2,12 @@
   <app-paramsform (sendParams)="onSubmit($event)"></app-paramsform>
 
 
-  <div *ngIf="params" [fxShow]="params" class="container" fxLayout="column"
-    fxLayoutAlign.gt-md="space-around center">
+  <div *ngIf="params" [fxShow]="params" class="container" fxLayout="column" fxLayoutAlign.gt-md="space-around center">
     <mat-spinner></mat-spinner>
     <h2>Loading results. . . Please wait</h2>
   </div>
 
-  <div fxFlex *ngIf="errorMessage" class="error_color" >
+  <div fxFlex *ngIf="errorMessage" class="error_color">
     <h1>Error</h1>
     <h2>{{errorMessage}}</h2>
   </div>

@@ -1,12 +1,9 @@
-<div class="container"
-     fxLayout="column"
-     fxLayoutGap="10px"
-     fxLayoutAlign.gt-md="space-around center">
+<div class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign.gt-md="space-around center">
   <div fxFlex="40">
     <mat-card>
       <div fxFlex fxFlexOffset="20px" class="form-size">
         <h2>Select parameters of feature selection and data classification</h2>
-               <p>{{ paramsForm.value | json }} {{ paramsForm.status | json }}</p>
+        <p>{{ paramsForm.value | json }} {{ paramsForm.status | json }}</p>
 
         <form novalidate [formGroup]="paramsForm" (ngSubmit)="onSubmit()">
           <p>
@@ -34,9 +31,7 @@
           </p>
 
           <div fxLayoutAlign="center">
-            <button type="submit" mat-button class="hello-primary"
-                    [disabled]="paramsForm.invalid">Submit
-            </button>
+            <button type="submit" mat-button class="hello-primary" [disabled]="paramsForm.invalid">Submit</button>
           </div>
         </form>
       </div>

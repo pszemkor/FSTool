@@ -14,6 +14,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { HttpClientModule } from '@angular/common/http';
+import { MatListModule } from '@angular/material/list';
 import { FeatureSelectionService } from './services/feature-selection.service';
 
 import { AppComponent } from './app.component';
@@ -25,7 +26,10 @@ import { ParamsformComponent } from './paramsform/paramsform.component';
 
 import { baseURL } from './shared/baseurl';
 import { ResultsComponent } from './results/results.component'
-import {MatTableModule} from '@angular/material/table';
+import { MatTableModule } from '@angular/material/table';
+import { ModelsComponent } from './models/models.component';
+import { ModelsformComponent } from './modelsform/modelsform.component';
+import { ClassificationresultComponent } from './classificationresult/classificationresult.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +39,10 @@ import {MatTableModule} from '@angular/material/table';
     HeaderComponent,
     HighlightDirective,
     ParamsformComponent,
-    ResultsComponent
+    ResultsComponent,
+    ModelsComponent,
+    ModelsformComponent,
+    ClassificationresultComponent
   ],
   imports: [
     BrowserModule,
@@ -54,6 +61,7 @@ import {MatTableModule} from '@angular/material/table';
     MatProgressSpinnerModule,
     HttpClientModule,
     MatTableModule,
+    MatListModule
   ],
   providers: [FeatureSelectionService],
   bootstrap: [AppComponent]

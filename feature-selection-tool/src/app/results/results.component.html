@@ -1,19 +1,11 @@
-<div class="container"
-     fxLayout="column"
-     fxLayoutGap="10px"
-     fxLayoutAlign.gt-md="space-around center">
+<div class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign.gt-md="space-around center">
   <div fxFlex="40" *ngIf="results">
-    <mat-card class="container"
-              fxLayout="column"
-              fxLayoutGap="10px"
-              fxLayoutAlign.gt-md="space-around center">
+    <mat-card class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign.gt-md="space-around center">
       <mat-card-content>
         <h1>Feature selection algorithm: {{ results.algoName }}</h1>
       </mat-card-content>
     </mat-card>
-    <div *ngFor="let resultImg of results.resultImgs"
-         fxLayout="column"
-         fxLayoutGap="10px">
+    <div *ngFor="let resultImg of results.resultImgs" fxLayout="column" fxLayoutGap="10px">
       <mat-card>
         <mat-card-title>
           <h2> {{ resultImg.name }}</h2>
@@ -21,10 +13,7 @@
         <img mat-card-image src={{resultImg.image}} alt={{resultImg.image}}>
       </mat-card>
     </div>
-    <mat-card class="container"
-              fxLayout="column"
-              fxLayoutGap="10px"
-              *ngIf="results.featuresRank">
+    <mat-card class="container" fxLayout="column" fxLayoutGap="10px" *ngIf="results.featuresRank">
       <mat-card-title>
         <h2>Features rank</h2>
       </mat-card-title>
@@ -45,10 +34,7 @@
         <tr mat-row *matRowDef="let myRowData; columns: columnsToDisplayFeatures"></tr>
       </table>
     </mat-card>
-    <mat-card class="container"
-              fxLayout="column"
-              fxLayoutGap="10px"
-              *ngIf="results.classificationResults">
+    <mat-card class="container" fxLayout="column" fxLayoutGap="10px" *ngIf="results.classificationResults">
       <mat-card-title>
         <h2>Classification results</h2>
       </mat-card-title>
