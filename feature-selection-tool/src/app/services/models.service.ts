@@ -5,6 +5,7 @@ import { baseURL } from '../shared/baseurl';
 import { Model } from '../shared/model';
 import { catchError } from 'rxjs/operators';
 import { ClassificationParams } from '../shared/classificationparams';
+import { ClassificationResults } from '../shared/classificationresults';
 
 @Injectable({
   providedIn: 'root'
@@ -31,7 +32,7 @@ export class ModelsService {
         'Content-Type': 'application/json'
       })
     };
-    return this.http.post<ClassificationParams>(baseURL + 'classify', params, httpOptions)
+    return this.http.post<ClassificationResults>(baseURL + 'classify', params, httpOptions)
       .pipe(catchError(this.errorProcessor.handleError));
   }
 }

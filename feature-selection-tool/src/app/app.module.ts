@@ -28,6 +28,7 @@ import { ResultsComponent } from './results/results.component'
 import {MatTableModule} from '@angular/material/table';
 import { ModelsComponent } from './models/models.component';
 import { ModelsformComponent } from './modelsform/modelsform.component';
+import { ClassificationresultComponent } from './classificationresult/classificationresult.component';
 
 @NgModule({
   declarations: [
@@ -39,7 +40,8 @@ import { ModelsformComponent } from './modelsform/modelsform.component';
     ParamsformComponent,
     ResultsComponent,
     ModelsComponent,
-    ModelsformComponent
+    ModelsformComponent,
+    ClassificationresultComponent
   ],
   imports: [
     BrowserModule,

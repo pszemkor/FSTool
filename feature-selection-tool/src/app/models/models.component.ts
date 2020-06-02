@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ClassificationParams } from '../shared/classificationparams';
 import { ModelsService } from '../services/models.service';
+import { ClassificationResults } from '../shared/classificationresults';
 
 @Component({
   selector: 'app-models',
@@ -9,7 +10,7 @@ import { ModelsService } from '../services/models.service';
 })
 export class ModelsComponent implements OnInit {
   params: ClassificationParams;
-  results: ClassificationParams;
+  results: ClassificationResults;
   errorMessage: String;
 
   constructor(private modelService: ModelsService) { }

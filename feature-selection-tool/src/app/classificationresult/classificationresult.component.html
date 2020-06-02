@@ -1,0 +1,11 @@
+<div class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign.gt-md="space-around center">
+    <div fxFlex="40" *ngIf="results"></div>
+    <mat-card class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign.gt-md="space-around center">
+        <mat-card-content>
+            <h1> Classification results: {{ results.classifier }}</h1>
+        </mat-card-content>
+        <mat-list>
+            <mat-list-item *ngFor="let res of results"> {{res.id + ":" + res.prediction}} </mat-list-item>
+        </mat-list>
+    </mat-card>
+</div>
