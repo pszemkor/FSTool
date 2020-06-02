@@ -115,7 +115,7 @@ class CommandExecutor:
             result.append(ClassificationResult(k, round(accuracy, 4), round(f1, 4), round(recall, 4)))
 
             cls = Classifier(name='Test name clf', cls_pickle=pickle.dumps(cv),
-                             selected_features=json.dumps(data.columns))
+                             selected_features=json.dumps(list(data.columns)))
             cls.save()
 
         return result

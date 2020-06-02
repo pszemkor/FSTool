@@ -12,6 +12,7 @@ import sys, os
 import pickle
 
 from fst_server.models import Classifier
+import json
 
 sys.path.append(os.path.abspath('../'))
 from .data import read_evaluation_data
@@ -28,10 +29,14 @@ class ModelEvaluator:
         data = read_evaluation_data(self.request['csvBase64'])
 
         cls_loaded = Classifier.objects.get(id=int(self.request['modelID']))
+        decoder = json.decoder.JSONDecoder()
+        features = decoder.decode(cls_loaded.selected_features)
+
         cv = pickle.loads(cls_loaded.cls_pickle)
         print(data)
+        print(features)
         # todo select only those features that were used in training
-        y = cv.predict(data.iloc[:, :10])
+        y = cv.predict(data[features])
         print(y)
 
         clf_results = [{'id': i, 'prediction': res} for i, res in enumerate(y)]

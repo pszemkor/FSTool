@@ -19,8 +19,8 @@ def read_data(base64_data: str, target):
 
 
 def read_evaluation_data(base64_data):
-    prefix = 'data:text/csv;base64,'
-    data_str = base64.b64decode(base64_data[len(prefix):]).decode('utf-8')
+    i = base64_data.find(",")
+    data_str = base64.b64decode(base64_data[i+1:]).decode('utf-8')
     csv_data = StringIO(data_str)
     df = pd.read_csv(csv_data)
     df = df[df.select_dtypes([np.number]).columns].dropna(axis=1)
