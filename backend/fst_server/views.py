@@ -1,12 +1,11 @@
 import sys, os
 from django.http import HttpResponse, JsonResponse
 from rest_framework.decorators import api_view
-
 from fst_server.models import Classifier
 
 sys.path.append(os.path.abspath('../'))
 sys.path.append(os.path.abspath('..'))
-
+from execution.CommandExecutor import CommandExecutor
 
 @api_view(['GET', 'POST'])
 def fs_request(request):
