@@ -87,6 +87,7 @@ class CommandExecutor:
                                                             test_size=0.2,
                                                             random_state=42)
         result = []
+
         classifiers = {"svm": SVC(), "nn": MLPClassifier(), "rf": RandomForestClassifier()}
         svm_params = {'kernel': ('linear', 'rbf', 'sigmoid', 'poly'),
                       'C': [.001, .01, .1, .5, 1, 2, 5, 10]}
@@ -113,7 +114,8 @@ class CommandExecutor:
             recall = recall_score(Y_test, pred, average="macro")
             result.append(ClassificationResult(k, round(accuracy, 4), round(f1, 4), round(recall, 4)))
 
-            cls = Classifier(name='Test name clf', cls_pickle=pickle.dumps(cv))
+            cls = Classifier(name='Test name clf', cls_pickle=pickle.dumps(cv),
+                             selected_features=json.dumps(data.columns))
             cls.save()
 
         return result
