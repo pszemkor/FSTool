@@ -1,6 +1,6 @@
 export class Model{
     id: string;
     name: string;
-    timestamp: Date;
+    creation_timestamp: Date;
     details: string;
 }
