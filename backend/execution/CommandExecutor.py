@@ -112,12 +112,9 @@ class CommandExecutor:
             accuracy = accuracy_score(Y_test, pred)
             recall = recall_score(Y_test, pred, average="macro")
             result.append(ClassificationResult(k, round(accuracy, 4), round(f1, 4), round(recall, 4)))
-            # TODO Save classifier in database - change name
+
             cls = Classifier(name='Test name clf', cls_pickle=pickle.dumps(cv))
             cls.save()
-
-            # cls_loaded = Classifier.objects.first()
-            # cv = pickle.loads(cls_loaded.cls_pickle)
 
         return result
 
