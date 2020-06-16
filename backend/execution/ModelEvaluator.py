@@ -39,6 +39,6 @@ class ModelEvaluator:
         y = cv.predict(data[features])
         print(y)
 
-        clf_results = [{'id': i, 'prediction': res} for i, res in enumerate(y)]
+        clf_results = [{'id': i, 'prediction': 'Female' if res == "F" else 'Male'} for i, res in enumerate(y)]
 
         return clf_results

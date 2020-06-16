@@ -114,7 +114,17 @@ class CommandExecutor:
             recall = recall_score(Y_test, pred, average="macro")
             result.append(ClassificationResult(k, round(accuracy, 4), round(f1, 4), round(recall, 4)))
 
-            cls = Classifier(name='Test name clf', cls_pickle=pickle.dumps(cv),
+            name = ''
+            if k == 'rf':
+                name = 'Random Forest'
+            elif k == 'svm':
+                name = k.upper()
+            elif k == 'nn':
+                name = 'Neural Network'
+            else:
+                name = k
+
+            cls = Classifier(name=name, cls_pickle=pickle.dumps(cv),
                              selected_features=json.dumps(list(data.columns)))
             cls.save()
 
