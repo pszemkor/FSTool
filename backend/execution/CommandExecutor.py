@@ -31,5 +31,5 @@ class CommandExecutor:
         requested_classifiers = list(filter(lambda clf: self.request[clf], self.available_classifiers))
 
         cmd = self.available_cmds[algorithm_name]
-        cv_results, diagrams, selected_features = cmd.execute(data, k, labels, requested_classifiers)
+        selected_features, diagrams, cv_results = cmd.execute(data, k, labels, requested_classifiers)
         return FSResponse(algorithm_name, diagrams, selected_features, cv_results)

@@ -7,8 +7,8 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
-from backend.execution.results import ClassificationResult
-from backend.fst_server.models import Classifier
+from execution.results import ClassificationResult
+from fst_server.models import Classifier
 
 
 def check_classifiers(data, labels, requested_classifiers):

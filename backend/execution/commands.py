@@ -1,9 +1,9 @@
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.model_selection import train_test_split
 
-from backend.execution.cv_check import check_classifiers
-from backend.execution.feature_util import get_best_k_features
-from backend.execution.results import ResultImg, SelectedFeature
+from execution.cv_check import check_classifiers
+from execution.feature_util import get_best_k_features
+from execution.results import ResultImg, SelectedFeature
 
 
 class CorrelationBasedFS:
