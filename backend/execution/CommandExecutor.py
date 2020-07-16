@@ -2,7 +2,7 @@ import os
 import sys
 from warnings import filterwarnings
 
-from .commands import RandomForestFS, CorrelationBased
+from .commands import RandomForestFS, CorrelationBasedFS
 
 sys.path.append(os.path.abspath('../'))
 from .data import read_data
@@ -17,9 +17,9 @@ class CommandExecutor:
         self.available_classifiers = ['svm', 'nn', 'rf']
         # todo: move this mapping to frontend
         self.available_cmds = {'RF': RandomForestFS(),
-                               'Spearman\'s correlation': CorrelationBased('spearman'),
-                               'Kendall correlation': CorrelationBased('kendall'),
-                               'Pearson correlation': CorrelationBased('pearson')}
+                               'Spearman\'s correlation': CorrelationBasedFS('spearman'),
+                               'Kendall correlation': CorrelationBasedFS('kendall'),
+                               'Pearson correlation': CorrelationBasedFS('pearson')}
 
     def execute(self):
         # todo move selection to form

@@ -6,10 +6,11 @@ from backend.execution.feature_util import get_best_k_features
 from backend.execution.results import ResultImg, SelectedFeature
 
 
-class CorrelationBased:
+class CorrelationBasedFS:
     def __init__(self, kind):
         self.kind = kind
 
+    # todo: select ONLY k features
     def execute(self, data, k, labels, requested_classifiers):
         cols = self.correlation_based_fs(self.kind, data)
         selected_features = []
@@ -17,7 +18,9 @@ class CorrelationBased:
         for i, f in enumerate(cols):
             # todo write correlation as score
             selected_features.append(SelectedFeature(i, f, 1))
-        return selected_features, classification_results
+        # todo: fill diagrams
+        diagrams = []
+        return selected_features, diagrams, classification_results
 
     def correlation_based_fs(self, method, data, threshold=0.9):
         corr = data.corr(method=method)
