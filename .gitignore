@@ -49,3 +49,4 @@ data.csv
 *.pyc
 
 __pycache__
+/PrometheusNotebook/.ipynb_checkpoints/
