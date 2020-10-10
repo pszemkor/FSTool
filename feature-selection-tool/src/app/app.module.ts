@@ -30,6 +30,9 @@ import { MatTableModule } from '@angular/material/table';
 import { ModelsComponent } from './models/models.component';
 import { ModelsformComponent } from './modelsform/modelsform.component';
 import { ClassificationresultComponent } from './classificationresult/classificationresult.component';
+import { HPCSettingsComponent } from './hpc-settings/hpc-settings.component';
+import { JobsComponent } from './jobs/jobs.component';
+import {MatGridListModule} from "@angular/material/grid-list";
 
 @NgModule({
   declarations: [
@@ -42,7 +45,9 @@ import { ClassificationresultComponent } from './classificationresult/classifica
     ResultsComponent,
     ModelsComponent,
     ModelsformComponent,
-    ClassificationresultComponent
+    ClassificationresultComponent,
+    HPCSettingsComponent,
+    JobsComponent
   ],
   imports: [
     BrowserModule,
@@ -61,7 +66,8 @@ import { ClassificationresultComponent } from './classificationresult/classifica
     MatProgressSpinnerModule,
     HttpClientModule,
     MatTableModule,
-    MatListModule
+    MatListModule,
+    MatGridListModule
   ],
   providers: [FeatureSelectionService],
   bootstrap: [AppComponent]

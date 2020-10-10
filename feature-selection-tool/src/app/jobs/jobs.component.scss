@@ -1,0 +1,19 @@
+.mat-row {
+  height: auto;
+}
+
+.mat-cell {
+  padding: 15px 40px 15px 0px;
+}
+
+.finished {
+    background-color: #82ff82;
+}
+
+.running {
+    background-color: #ffffa7;
+}
+
+.error {
+    background-color: #fbd1d1;
+}
