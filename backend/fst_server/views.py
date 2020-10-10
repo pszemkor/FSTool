@@ -51,14 +51,13 @@ def classify(request):
 
 @api_view(['POST'])
 def settings(request):
+    count = HPCSettings.objects.count()
+    if count >= 1:
+        HPCSettings.objects.all().delete()
     user_name = request.data['user_name']
     proxy_certificate = request.data['proxy_certificate']
     host = request.data['host']
-    if HPCSettings.objects.get(pk=user_name):
-        HPCSettings.objects.filter(pk=user_name).update(proxy_certificate=proxy_certificate, host=host)
-        hpc_settings = HPCSettings.objects.get(pk=user_name)
-    else:
-        hpc_settings = HPCSettings.objects.create(user_name=user_name, proxy_certificate=proxy_certificate, host=host)
+    hpc_settings = HPCSettings.objects.create(user_name=user_name, proxy_certificate=proxy_certificate, host=host)
     return JsonResponse(model_to_dict(hpc_settings))
 
 
