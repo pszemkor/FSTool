@@ -21,11 +21,12 @@ from django.urls import path
 
 sys.path.append(os.path.abspath('../'))
 sys.path.append(os.path.abspath('..'))
-from fst_server.views import fs_request, get_models, classify
+from fst_server.views import fs_request, get_models, classify, settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('featureselection', fs_request),
     path('models', get_models),
-    path('classify', classify)
+    path('classify', classify),
+    path('settings', settings)
 ]

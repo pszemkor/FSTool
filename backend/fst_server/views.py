@@ -2,12 +2,15 @@ import sys, os
 from django.http import HttpResponse, JsonResponse
 from rest_framework.decorators import api_view
 from fst_server.models import Classifier
+from fst_server.models import HPCSettings
 from execution.CommandExecutor import CommandExecutor
 from execution.ModelEvaluator import ModelEvaluator
+from django.forms.models import model_to_dict
 
 sys.path.append(os.path.abspath('../'))
 sys.path.append(os.path.abspath('..'))
 from execution.CommandExecutor import CommandExecutor
+
 
 @api_view(['GET', 'POST'])
 def fs_request(request):
@@ -38,7 +41,6 @@ def get_models(request):
 @api_view(['GET', 'POST'])
 def classify(request):
     if request.method == "POST":
-        print(request.data)
         modelID = request.data['modelID']
         evaluator = ModelEvaluator(request.data)
         evaluation_results = evaluator.execute()
@@ -47,3 +49,16 @@ def classify(request):
             'results': evaluation_results
         }
         return JsonResponse(to_json)
+
+
+@api_view(['POST'])
+def settings(request):
+    user_name = request.data['user_name']
+    proxy_certificate = request.data['proxy_certificate']
+    host = request.data['host']
+    if HPCSettings.objects.get(pk=user_name):
+        HPCSettings.objects.filter(pk=user_name).update(proxy_certificate=proxy_certificate, host=host)
+        hpc_settings = HPCSettings.objects.get(pk=user_name)
+    else:
+        hpc_settings = HPCSettings.objects.create(user_name=user_name, proxy_certificate=proxy_certificate, host=host)
+    return JsonResponse(model_to_dict(hpc_settings))

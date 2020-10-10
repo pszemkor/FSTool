@@ -1,6 +1,17 @@
 from django.db import models
 
 
+def auto_str(cls):
+    def __str__(self):
+        return '%s(%s)' % (
+            type(self).__name__,
+            ', '.join('%s=%s' % item for item in vars(self).items())
+        )
+
+    cls.__str__ = __str__
+    return cls
+
+
 class Classifier(models.Model):
     name = models.CharField(max_length=100)
     details = models.CharField(max_length=300, default="")
@@ -10,3 +21,11 @@ class Classifier(models.Model):
 
     def __str__(self):
         return self.name
+
+
+
+@auto_str
+class HPCSettings(models.Model):
+    user_name = models.CharField(primary_key=True, max_length=200, null=False)
+    proxy_certificate = models.TextField(null=False)
+    host = models.CharField(max_length=200, null=False)
