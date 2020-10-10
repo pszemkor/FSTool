@@ -1,9 +1,7 @@
 import sys, os
 from django.http import HttpResponse, JsonResponse
 from rest_framework.decorators import api_view
-from fst_server.models import Classifier
-from fst_server.models import HPCSettings
-from execution.CommandExecutor import CommandExecutor
+from fst_server.models import Classifier, HPCSettings, Job
 from execution.ModelEvaluator import ModelEvaluator
 from django.forms.models import model_to_dict
 
@@ -62,3 +60,14 @@ def settings(request):
     else:
         hpc_settings = HPCSettings.objects.create(user_name=user_name, proxy_certificate=proxy_certificate, host=host)
     return JsonResponse(model_to_dict(hpc_settings))
+
+
+@api_view(['GET', 'POST'])
+def jobs(request):
+    if request.method == 'GET':
+        return JsonResponse(list(Job.objects.all().values()), safe=False)
+    job_id = request.data['job_id']
+    status = request.data['status']
+    start_time = request.data['start_time']
+    end_time = request.data['end_time']
+    return JsonResponse(model_to_dict(Job.objects.create(job_id=job_id, status=status, start_time=start_time, end_time=end_time)))
