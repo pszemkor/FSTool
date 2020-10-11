@@ -11,7 +11,7 @@ import { ClassificationResults } from '../shared/classificationresults';
 export class ModelsComponent implements OnInit {
   params: ClassificationParams;
   results: ClassificationResults;
-  errorMessage: String;
+  errorMessage: string;
 
   constructor(private modelService: ModelsService) { }
 

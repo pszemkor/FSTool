@@ -1,0 +1,47 @@
+<div class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign.gt-md="space-around center">
+  <div fxFlex="40">
+    <mat-card>
+      <div fxFlex fxFlexOffset="20px" class="form-size">
+        <h2>HPC Settings</h2>
+        <form novalidate [formGroup]="settingsForm" (ngSubmit)="onSubmit()" class="mat-size">
+          <p>
+            <mat-form-field class="full-width">
+              <input matInput formControlName="username" placeholder="Username" type="text">
+            </mat-form-field>
+          </p>
+          <p>
+            <mat-form-field class="full-width">
+              <input matInput formControlName="host" placeholder="Host" type="text">
+            </mat-form-field>
+          </p>
+          <p>
+            <mat-form-field class="full-width">
+              <input matInput formControlName="grantId" placeholder="Grant ID" type="text">
+            </mat-form-field>
+          </p>
+          <p>
+            <mat-form-field class="full-width">
+              <input matInput formControlName="proxyBase64String" placeholder="ProxyBase64" type="text">
+            </mat-form-field>
+          </p>
+
+          <div fxLayoutAlign="center">
+            <button type="submit" mat-button class="hello-primary">Update settings
+            </button>
+          </div>
+        </form>
+      </div>
+    </mat-card>
+  </div>
+
+
+  <div *ngIf="tempSettings" class="container" fxLayout="column" fxLayoutAlign.gt-md="space-around center">
+    <mat-spinner></mat-spinner>
+    <h2>Updating settings...</h2>
+  </div>
+
+  <div fxFlex *ngIf="errorMessage" class="error_color">
+    <h1>Error</h1>
+    <h2>{{errorMessage}}</h2>
+  </div>
+</div>

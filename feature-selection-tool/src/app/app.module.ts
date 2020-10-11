@@ -32,7 +32,9 @@ import { ModelsformComponent } from './modelsform/modelsform.component';
 import { ClassificationresultComponent } from './classificationresult/classificationresult.component';
 import { HPCSettingsComponent } from './hpc-settings/hpc-settings.component';
 import { JobsComponent } from './jobs/jobs.component';
-import {MatGridListModule} from "@angular/material/grid-list";
+import {MatGridListModule} from '@angular/material/grid-list';
+import { HPCSettingsFormComponent } from './hpc-settings-form/hpc-settings-form.component';
+import {MatInputModule} from '@angular/material/input';
 
 @NgModule({
   declarations: [
@@ -47,7 +49,8 @@ import {MatGridListModule} from "@angular/material/grid-list";
     ModelsformComponent,
     ClassificationresultComponent,
     HPCSettingsComponent,
-    JobsComponent
+    JobsComponent,
+    HPCSettingsFormComponent
   ],
   imports: [
     BrowserModule,
@@ -67,7 +70,8 @@ import {MatGridListModule} from "@angular/material/grid-list";
     HttpClientModule,
     MatTableModule,
     MatListModule,
-    MatGridListModule
+    MatGridListModule,
+    MatInputModule
   ],
   providers: [FeatureSelectionService],
   bootstrap: [AppComponent]

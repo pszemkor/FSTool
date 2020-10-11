@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 
 @Component({
   selector: 'app-hpc-settings',
@@ -6,10 +6,8 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./hpc-settings.component.scss']
 })
 export class HPCSettingsComponent implements OnInit {
-
   constructor() { }
 
   ngOnInit(): void {
   }
-
 }
