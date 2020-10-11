@@ -3,6 +3,7 @@ export class FeatureSelectionParameters {
   rf: boolean;
   svm: boolean;
   nn: boolean;
+  hpc: boolean;
   csvBase64: string | ArrayBuffer;
 }
 

@@ -3,6 +3,8 @@ import {HttpClient} from '@angular/common/http';
 import {ErrorMessageProcessorService} from './error-message-processor.service';
 import {Job, JobStatus} from '../shared/job';
 import {Observable} from 'rxjs';
+import {baseURL} from "../shared/baseurl";
+import {catchError} from "rxjs/operators";
 
 @Injectable({
   providedIn: 'root'
@@ -11,26 +13,26 @@ export class JobsService {
 
   jobs: Job[] = [
     {
-      id: '1',
-      name: 'Test job',
+      job_id: '1',
+      start_time: 'Test job',
       // creation_timestamp: Date;
       status: JobStatus.Running,
     },
     {
-      id: '2',
-      name: 'Another test job ',
+      job_id: '2',
+      start_time: 'Another test job ',
       // creation_timestamp: Date;
       status: JobStatus.Finished,
     },
     {
-      id: '3',
-      name: 'Failed job ',
+      job_id: '3',
+      start_time: 'Failed job ',
       // creation_timestamp: Date;
       status: JobStatus.Error,
     },
     {
-      id: '4',
-      name: 'Good job ',
+      job_id: '4',
+      start_time: 'Good job ',
       // creation_timestamp: Date;
       status: JobStatus.Finished,
     },
@@ -41,14 +43,7 @@ export class JobsService {
   }
 
   getAvailableJobs() {
-    // return this.http.get<Job[]>(baseURL + 'jobs')
-    //   .pipe(catchError(this.errorProcessor.handleError));
-
-    this.jobs[0].id = (Math.trunc(Math.random() * 10)).toString();
-
-    return new Observable(observer => {
-      observer.next(this.jobs);
-      observer.complete();
-    });
+    return this.http.get<Job[]>(baseURL + 'jobs')
+      .pipe(catchError(this.errorProcessor.handleError));
   }
 }

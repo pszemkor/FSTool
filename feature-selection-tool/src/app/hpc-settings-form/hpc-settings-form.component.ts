@@ -16,40 +16,53 @@ export class HPCSettingsFormComponent implements OnInit {
   errorMessage: string;
 
   constructor(private fb: FormBuilder, private hpcSettingsService: HPCSettingsService) {
+    this.hpcSettings = new HPCSettings();
     this.createForm();
   }
 
   ngOnInit(): void {
-  }
-
-  createForm() {
     this.hpcSettingsService.getSettings()
       .subscribe(response => {
           this.hpcSettings = (response as HPCSettings);
+          this.settingsForm.reset({
+            user_name: this.hpcSettings.user_name,
+            // grantId: this.hpcSettings.grantId,
+            host: this.hpcSettings.host,
+            proxy_certificate: this.hpcSettings.proxy_certificate,
+          });
           this.errorMessage = null;
         },
         error => {
           this.errorMessage = error;
           this.tempSettings = null;
         });
+  }
+
+  createForm() {
     this.settingsForm = this.fb.group({
-      username: this.hpcSettings.username,
-      grantId: this.hpcSettings.grantId,
+      user_name: this.hpcSettings.user_name,
       host: this.hpcSettings.host,
-      proxyBase64String: this.hpcSettings.proxyBase64String,
+      proxy_certificate: this.hpcSettings.proxy_certificate,
     });
   }
 
   onSubmit() {
     this.tempSettings = new HPCSettings();
-    this.tempSettings.username = this.settingsForm.value.username;
-    this.tempSettings.grantId = this.settingsForm.value.grantId;
+    this.tempSettings.user_name = this.settingsForm.value.user_name;
+    // this.tempSettings.grantId = this.settingsForm.value.grantId;
     this.tempSettings.host = this.settingsForm.value.host;
-    this.tempSettings.proxyBase64String = this.settingsForm.value.proxyBase64String;
+    this.tempSettings.proxy_certificate = this.settingsForm.value.proxy_certificate;
 
     this.hpcSettingsService.postSettings(this.tempSettings)
       .subscribe(response => {
           this.hpcSettings = (response as HPCSettings);
+          this.settingsForm.reset({
+              user_name: this.hpcSettings.user_name,
+              // grantId: this.hpcSettings.grantId,
+              host: this.hpcSettings.host,
+              proxy_certificate: this.hpcSettings.proxy_certificate,
+            }
+          );
           this.tempSettings = null;
           this.errorMessage = null;
         },
@@ -57,14 +70,5 @@ export class HPCSettingsFormComponent implements OnInit {
           this.errorMessage = error;
           this.tempSettings = null;
         });
-
-    this.settingsForm.reset({
-        username: this.hpcSettings.username,
-        grantId: this.hpcSettings.grantId,
-        host: this.hpcSettings.host,
-        proxyBase64String: this.hpcSettings.proxyBase64String,
-      }
-    );
   }
-
 }

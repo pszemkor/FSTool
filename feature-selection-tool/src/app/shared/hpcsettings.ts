@@ -1,6 +1,6 @@
 export class HPCSettings {
-  username: string;
+  user_name: string;
   host: string;
-  grantId: string;
-  proxyBase64String: string;
+  // grantId: string;
+  proxy_certificate: string;
 }

@@ -1,4 +1,6 @@
 import sys, os
+from datetime import datetime
+
 from django.http import HttpResponse, JsonResponse
 from rest_framework.decorators import api_view
 from fst_server.models import Classifier, HPCSettings, Job
@@ -15,21 +17,31 @@ import requests
 @api_view(['GET', 'POST'])
 def fs_request(request):
     if request.method == 'POST':
-        # Rimrock's hello world =]
-        settings = HPCSettings.objects.all()
-        if len(settings) != 1:
-            return HttpResponse("Missing settings", status=500)
-        user_settings = settings[0]
-        sample_data = {'host': user_settings.host,
-                       'script': '#!/bin/bash\n#SBATCH -A plgimmunome\n \echo hello\nexit 0'}
-        header = {'Content-type': 'application/json', "PROXY": user_settings.proxy_certificate}
-        response = requests.post('https://rimrock.plgrid.pl/api/jobs', json=sample_data, headers=header)
-        response_content = response.json()
-        if response.ok:
-            Job.objects.create(job_id=response_content['job_id'], status=response_content['status'])
+
+        if request.data['hpc']:
+            # Rimrock's hello world =]
+            settings = HPCSettings.objects.all()
+            if len(settings) != 1:
+                return HttpResponse("Missing settings", status=500)
+            user_settings = settings[0]
+            sample_data = {'host': user_settings.host,
+                           'script': '#!/bin/bash\n#SBATCH -A plgimmunome\n \echo hello\nexit 0'}
+            header = {'Content-type': 'application/json', "PROXY": user_settings.proxy_certificate}
+            response = requests.post('https://rimrock.plgrid.pl/api/jobs', json=sample_data, headers=header)
+            response_content = response.json()
+            if response.ok:
+                Job.objects.create(job_id=response_content['job_id'], status=response_content['status'],
+                                   start_time=datetime.now().strftime("%I:%M%p on %B %d, %Y"))
+            else:
+                return HttpResponse(response.reason, status=500)
+            return HttpResponse(response.text)
         else:
-            return HttpResponse(response.reason, status=500)
-        return HttpResponse(response.text)
+            print(request.data)
+            executor = CommandExecutor(request.data)
+            execute = executor.execute()
+            json = execute.toJSON()
+            print(json)
+            return HttpResponse(json)
 
 
 @api_view(['GET', 'POST'])
@@ -60,16 +72,19 @@ def classify(request):
         return JsonResponse(to_json)
 
 
-@api_view(['POST'])
+@api_view(['POST', 'GET'])
 def settings(request):
-    count = HPCSettings.objects.count()
-    if count >= 1:
-        HPCSettings.objects.all().delete()
-    user_name = request.data['user_name']
-    proxy_certificate = request.data['proxy_certificate']
-    host = request.data['host']
-    hpc_settings = HPCSettings.objects.create(user_name=user_name, proxy_certificate=proxy_certificate, host=host)
-    return JsonResponse(model_to_dict(hpc_settings))
+    if request.method == 'POST':
+        count = HPCSettings.objects.count()
+        if count >= 1:
+            HPCSettings.objects.all().delete()
+        user_name = request.data['user_name']
+        proxy_certificate = request.data['proxy_certificate']
+        host = request.data['host']
+        hpc_settings = HPCSettings.objects.create(user_name=user_name, proxy_certificate=proxy_certificate, host=host)
+        return JsonResponse(model_to_dict(hpc_settings))
+    else:
+        return JsonResponse(model_to_dict(HPCSettings.objects.first()) if HPCSettings.objects.first() else {})
 
 
 @api_view(['GET', 'POST'])

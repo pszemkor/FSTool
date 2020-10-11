@@ -28,6 +28,7 @@ export class ParamsformComponent implements OnInit {
       rf: false,
       svm: false,
       nn: false,
+      hpc: false,
       csvPath: '',
     });
   }
@@ -37,6 +38,7 @@ export class ParamsformComponent implements OnInit {
     this.params.rf = this.paramsForm.value.rf;
     this.params.svm = this.paramsForm.value.svm;
     this.params.nn = this.paramsForm.value.nn;
+    this.params.hpc = this.paramsForm.value.hpc;
 
     console.log(this.params);
     this.sendParams.emit(this.params);
@@ -45,6 +47,7 @@ export class ParamsformComponent implements OnInit {
       rf: false,
       svm: false,
       nn: false,
+      hpc: false,
       csvPath: '',
     });
   }

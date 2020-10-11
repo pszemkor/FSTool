@@ -3,7 +3,7 @@
     <mat-card>
       <div fxFlex fxFlexOffset="20px" class="form-size">
         <h2>Select parameters of feature selection and data classification</h2>
-<!--        <p>{{ paramsForm.value | json }} {{ paramsForm.status | json }}</p>-->
+        <!--        <p>{{ paramsForm.value | json }} {{ paramsForm.status | json }}</p>-->
 
         <form novalidate [formGroup]="paramsForm" (ngSubmit)="onSubmit()">
           <p>
@@ -23,6 +23,11 @@
           </p>
           <p>
             <mat-slide-toggle formControlName="nn">Neural Network</mat-slide-toggle>
+          </p>
+
+          <h3>HPC Mode</h3>
+          <p>
+            <mat-slide-toggle formControlName="hpc">Use HPC cluster</mat-slide-toggle>
           </p>
 
           <h3>Select CSV file</h3>

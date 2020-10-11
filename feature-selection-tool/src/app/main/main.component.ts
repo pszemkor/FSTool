@@ -12,7 +12,7 @@ export class MainComponent implements OnInit {
 
   params: FeatureSelectionParameters;
   results: FeatureSelectionResults;
-  errorMessage: String;
+  errorMessage: string;
   constructor(private featureSelectionService: FeatureSelectionService) { }
 
   ngOnInit(): void {
