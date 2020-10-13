@@ -4,7 +4,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CORS_ORIGIN_ALLOW_ALL = True
 SECRET_KEY = '6e96m)bm+fi%l$nogv=p-fhruxozz&u^ojab)m(v%tp+tp8tqw'
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# SECURITY WARNING: don't run with d\ebug turned on in production!
 DEBUG = True
 ALLOWED_HOSTS = []
 INSTALLED_APPS = [
@@ -16,7 +16,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'fst_server',
-    'corsheaders'
+    'corsheaders',
+    'django_crontab'
 ]
 
 MIDDLEWARE = [
@@ -76,3 +77,4 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 STATIC_URL = '/static/'
+CRONJOBS = [('* * * * *', 'fst_server.cron.update_jobs', '>> /tmp/scheduled_job.log')]
