@@ -48,5 +48,8 @@ db.sqlite*
 data.csv
 *.pyc
 
+# Exclude data
+/data
+
 __pycache__
 /PrometheusNotebook/.ipynb_checkpoints/
