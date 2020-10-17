@@ -38,7 +38,8 @@ class Job(models.Model):
 class JobResult(models.Model):
     job_id = models.CharField(primary_key=True, max_length=200, null=False)
     response_json = models.TextField(null=False)
-    # todo: store images in db; separator: '#'
-    separated_paths = models.TextField()
 
+class Image(models.Model):
+    image_binary = models.BinaryField
+    job_id = models.ForeignKey(JobResult, on_delete=models.CASCADE)
 
