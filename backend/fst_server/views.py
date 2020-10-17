@@ -1,46 +1,77 @@
-import sys, os
+import ntpath
+import os
+import sys
+import tempfile
+import time
 from datetime import datetime
 
-from django.http import HttpResponse, JsonResponse
-from rest_framework.decorators import api_view
-from fst_server.models import Classifier, HPCSettings, Job
-from execution.ModelEvaluator import ModelEvaluator
+import requests
 from django.forms.models import model_to_dict
+from django.http import HttpResponse, JsonResponse
+from execution.ModelEvaluator import ModelEvaluator
+from fst_server.models import Classifier, HPCSettings, Job
+from rest_framework.decorators import api_view
 
 sys.path.append(os.path.abspath('../'))
 sys.path.append(os.path.abspath('..'))
 from execution.CommandExecutor import CommandExecutor
-import json
-import requests
 
 
 @api_view(['GET', 'POST'])
 def fs_request(request):
     if request.method == 'POST':
-
         if request.data['hpc']:
-            # Rimrock's hello world =]
             settings = HPCSettings.objects.all()
+            data = request.data
             if len(settings) != 1:
                 return HttpResponse("Missing settings", status=500)
             user_settings = settings[0]
-            sample_data = {'host': user_settings.host,
-                           'script': '#!/bin/bash\n#SBATCH -A plgimmunome\n \echo hello\nexit 0'}
-            header = {'Content-type': 'application/json', "PROXY": user_settings.proxy_certificate}
-            response = requests.post('https://rimrock.plgrid.pl/api/jobs', json=sample_data, headers=header)
+            fd, filename = tempfile.mkstemp()
+            name_of_file = ""
+            workdir = '/net/scratch/people/{}'.format(user_settings.user_name)
+            try:
+                with os.fdopen(fd, 'w') as tmp:
+                    tmp.write(data['csvBase64'])
+                with open(filename) as tmp:
+                    # todo: 'prometheus' should be passed as a parameter
+                    path = 'https://data.plgrid.pl/upload/prometheus' + workdir + '/'
+                    name_of_file = tmp.name
+                    file_upload_response = requests.post(path,
+                                                         files=dict(file=tmp),
+                                                         headers={
+                                                             "PROXY": user_settings.proxy_certificate})
+                    if not file_upload_response.ok:
+                        return HttpResponse("Could not upload file", status=500)
+
+            finally:
+                os.remove(filename)
+
+            script = ""
+            with open('backend/execution/script.slurm') as f:
+                script = f.read()
+                # todo: the target should be parametrized
+                script = script.format('${SCRATCH}', '${SLURM_JOBID}', 'SEX', request.data['algoType'],
+                                       os.path.basename(name_of_file), '10')
+
+            response = requests.post('https://rimrock.plgrid.pl/api/jobs',
+                                     json={'host': user_settings.host,
+                                           'working_directory': workdir,
+                                           'script': script},
+                                     headers={'Content-type': 'application/json',
+                                              "PROXY": user_settings.proxy_certificate})
             response_content = response.json()
             if response.ok:
+                print(response_content)
                 Job.objects.create(job_id=response_content['job_id'], status=response_content['status'],
                                    start_time=datetime.now().strftime("%I:%M%p on %B %d, %Y"))
             else:
+                print(response_content)
                 return HttpResponse(response.reason, status=500)
             return HttpResponse(response.text)
         else:
-            print(request.data)
             executor = CommandExecutor(request.data)
             execute = executor.execute()
             json = execute.toJSON()
-            print(json)
             return HttpResponse(json)
 
 

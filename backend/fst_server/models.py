@@ -22,8 +22,6 @@ class Classifier(models.Model):
     def __str__(self):
         return self.name
 
-
-
 @auto_str
 class HPCSettings(models.Model):
     user_name = models.CharField(primary_key=True, max_length=200, null=False)
@@ -36,3 +34,11 @@ class Job(models.Model):
     status = models.CharField(max_length=50, null=False)
     start_time = models.CharField(max_length=100, null=False)
     end_time = models.CharField(max_length=100, null=False)
+
+class JobResult(models.Model):
+    job_id = models.CharField(primary_key=True, max_length=200, null=False)
+    response_json = models.TextField(null=False)
+    # todo: store images in db; separator: '#'
+    separated_paths = models.TextField()
+
+
