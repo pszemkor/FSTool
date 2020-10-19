@@ -9,7 +9,7 @@ import requests
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, JsonResponse
 from execution.ModelEvaluator import ModelEvaluator
-from fst_server.models import Classifier, HPCSettings, Job
+from fst_server.models import Classifier, HPCSettings, Job, JobResult
 from rest_framework.decorators import api_view
 
 sys.path.append(os.path.abspath('../'))
@@ -128,3 +128,10 @@ def jobs(request):
     end_time = request.data['end_time']
     return JsonResponse(
         model_to_dict(Job.objects.create(job_id=job_id, status=status, start_time=start_time, end_time=end_time)))
+
+
+@api_view(['GET'])
+def job_result(request, job_id):
+    job_result = JobResult.objects.get(pk=job_id)
+    # todo send images related to this job result
+    return JsonResponse(model_to_dict(job_result))

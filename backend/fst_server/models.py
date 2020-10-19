@@ -1,3 +1,5 @@
+import json
+
 from django.db import models
 
 
@@ -22,11 +24,13 @@ class Classifier(models.Model):
     def __str__(self):
         return self.name
 
+
 @auto_str
 class HPCSettings(models.Model):
     user_name = models.CharField(primary_key=True, max_length=200, null=False)
     proxy_certificate = models.TextField(null=False)
     host = models.CharField(max_length=200, null=False)
+
 
 @auto_str
 class Job(models.Model):
@@ -35,11 +39,12 @@ class Job(models.Model):
     start_time = models.CharField(max_length=100, null=False)
     end_time = models.CharField(max_length=100, null=False)
 
+
 class JobResult(models.Model):
     job_id = models.CharField(primary_key=True, max_length=200, null=False)
     response_json = models.TextField(null=False)
 
+
 class Image(models.Model):
     image_binary = models.BinaryField(null=False)
     job_result = models.ForeignKey(JobResult, on_delete=models.CASCADE)
-
