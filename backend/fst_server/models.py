@@ -40,6 +40,6 @@ class JobResult(models.Model):
     response_json = models.TextField(null=False)
 
 class Image(models.Model):
-    image_binary = models.BinaryField
-    job_id = models.ForeignKey(JobResult, on_delete=models.CASCADE)
+    image_binary = models.BinaryField(null=False)
+    job_result = models.ForeignKey(JobResult, on_delete=models.CASCADE)
 
