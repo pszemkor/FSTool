@@ -19,7 +19,7 @@ export class ParamsformComponent implements OnInit {
   }
 
   ngOnInit(): void {
-      this.params = new FeatureSelectionParameters();
+    this.params = new FeatureSelectionParameters();
   }
 
   createForm() {
@@ -29,6 +29,7 @@ export class ParamsformComponent implements OnInit {
       svm: false,
       nn: false,
       hpc: false,
+      target: '',
       csvPath: '',
     });
   }
@@ -38,6 +39,7 @@ export class ParamsformComponent implements OnInit {
     this.params.rf = this.paramsForm.value.rf;
     this.params.svm = this.paramsForm.value.svm;
     this.params.nn = this.paramsForm.value.nn;
+    this.params.target = this.paramsForm.value.target;
     this.params.hpc = this.paramsForm.value.hpc;
 
     console.log(this.params);
@@ -48,6 +50,7 @@ export class ParamsformComponent implements OnInit {
       svm: false,
       nn: false,
       hpc: false,
+      target: '',
       csvPath: '',
     });
   }

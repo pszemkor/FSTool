@@ -22,3 +22,8 @@ export class FeatureSelectionResults {
   featuresRank: SelectedFeature[];
   classificationResults: ClassificationResult[];
 }
+
+export class JobResult {
+  response_json: FeatureSelectionResults;
+  job_id: string;
+}
