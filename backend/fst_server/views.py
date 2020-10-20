@@ -124,12 +124,12 @@ def jobs(request):
 @api_view(['GET'])
 def job_result(request, job_id):
     job_result = JobResult.objects.get(pk=job_id)
-    # todo send images related to this job result
-    return JsonResponse(json.loads(job_result.response_json.replace("'", "\"")))
+    result = json.loads(job_result.response_json.replace("'", "\""))
+    related_imgs = Image.objects.filter(job_result=job_id)
+    result["resultImgs"] = [{"image": im.id, "name": job_id} for im in related_imgs]
+    return JsonResponse(result)
 
 
 @api_view(['GET'])
 def images(request, image_id):
     return HttpResponse(Image.objects.get(pk=image_id).image_binary, 'image/png')
-
-

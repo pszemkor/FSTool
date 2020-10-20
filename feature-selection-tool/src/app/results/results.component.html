@@ -7,10 +7,10 @@
     </mat-card>
     <div *ngFor="let resultImg of results.resultImgs" fxLayout="column" fxLayoutGap="10px">
       <mat-card>
-        <mat-card-title>
-          <h2> {{ resultImg.name }}</h2>
-        </mat-card-title>
-        <img mat-card-image src={{resultImg.image}} alt={{resultImg.image}}>
+<!--        <mat-card-title>-->
+          <p> {{ resultImg.name }}</p>
+<!--        </mat-card-title>-->
+        <img mat-card-image src='{{baseUrl}}images/{{resultImg.image}}'  alt={{resultImg.image}}>
       </mat-card>
     </div>
     <mat-card class="container" fxLayout="column" fxLayoutGap="10px" *ngIf="results.featuresRank">

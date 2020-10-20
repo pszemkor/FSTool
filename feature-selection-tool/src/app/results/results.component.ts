@@ -2,6 +2,8 @@ import {Component, Input, OnInit} from '@angular/core';
 import {FeatureSelectionResults} from '../shared/featureselectionresults';
 import {JobsService} from '../services/jobs.service';
 import {ActivatedRoute} from '@angular/router';
+import {baseURL} from '../shared/baseurl';
+
 
 @Component({
   selector: 'app-results',
@@ -13,6 +15,7 @@ export class ResultsComponent implements OnInit {
   @Input() results: FeatureSelectionResults;
   columnsToDisplayFeatures = ['index', 'name', 'score'];
   columnsToDisplayClf = ['classifier', 'accuracy', 'f1', 'recall'];
+  baseUrl = baseURL;
 
   constructor(private jobsService: JobsService, private route: ActivatedRoute) {
   }
