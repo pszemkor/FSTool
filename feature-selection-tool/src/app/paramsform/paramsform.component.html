@@ -6,14 +6,32 @@
         <!--        <p>{{ paramsForm.value | json }} {{ paramsForm.status | json }}</p>-->
 
         <form novalidate [formGroup]="paramsForm" (ngSubmit)="onSubmit()">
+          <h3>Select feature selection algorithms to be compared</h3>
           <p>
-            Algorithm
-            <mat-select placeholder="Feature selection algorithm" formControlName="algoType">
-              <mat-option *ngFor="let algotype of algoType" [value]="algotype">
-                {{ algotype }}
-              </mat-option>
-            </mat-select>
+            <mat-slide-toggle formControlName="fs_rf">Random Forest</mat-slide-toggle>
           </p>
+          <p>
+            <mat-slide-toggle formControlName="fs_it">Information theoretical</mat-slide-toggle>
+          </p>
+          <p>
+            <mat-slide-toggle formControlName="fs_kendall">Kendall's coefficient</mat-slide-toggle>
+          </p>
+          <p>
+            <mat-slide-toggle formControlName="fs_pearson">Pearson's coefficient</mat-slide-toggle>
+          </p>
+          <p>
+            <mat-slide-toggle formControlName="fs_skbest">Chi-squared</mat-slide-toggle>
+          </p>
+          <p>
+            <mat-slide-toggle formControlName="fs_lasso">Lasso</mat-slide-toggle>
+          </p>
+          <p>
+            <mat-slide-toggle formControlName="fs_elastic">Elastic net regularization</mat-slide-toggle>
+          </p>
+          <p>
+            <mat-slide-toggle formControlName="fs_rmcsf">RMCFS</mat-slide-toggle>
+          </p>
+
           <h3>Select classifiers to be compared</h3>
           <p>
             <mat-slide-toggle formControlName="rf">Random Forest</mat-slide-toggle>
@@ -24,9 +42,12 @@
           <p>
             <mat-slide-toggle formControlName="nn">Neural Network</mat-slide-toggle>
           </p>
+          <p>
+            <mat-slide-toggle formControlName="knn">K-Nearest Neighbours</mat-slide-toggle>
+          </p>
 
           <mat-form-field>
-            <mat-label> <b>Target name</b></mat-label>
+            <mat-label><b>Target name</b></mat-label>
             <input formControlName="target" matInput>
           </mat-form-field>
 
@@ -34,6 +55,7 @@
           <p>
             <mat-slide-toggle formControlName="hpc">Use HPC cluster</mat-slide-toggle>
           </p>
+
 
           <h3>Select CSV file</h3>
           <p>
