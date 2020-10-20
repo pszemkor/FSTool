@@ -9,7 +9,7 @@ import requests
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, JsonResponse
 from execution.ModelEvaluator import ModelEvaluator
-from fst_server.models import Classifier, HPCSettings, Job, JobResult
+from fst_server.models import Classifier, HPCSettings, Job, JobResult, Image
 from rest_framework.decorators import api_view
 
 sys.path.append(os.path.abspath('../'))
@@ -19,6 +19,7 @@ from execution.CommandExecutor import CommandExecutor
 
 @api_view(['POST'])
 def fs_request(request):
+    # todo: should take it into account
     # if request.data['hpc']:
     settings = HPCSettings.objects.all()
     data = request.data
@@ -47,7 +48,7 @@ def fs_request(request):
     with open('execution/script.slurm') as f:
         script = f.read()
         # todo: the target should be parametrized
-        script = script.format('${SCRATCH}', '${SLURM_JOBID}', 'SEX', request.data['algoType'],
+        script = script.format('${SCRATCH}', '${SLURM_JOBID}', request.data['target'], request.data['algoType'],
                                os.path.basename(name_of_file), '10')
 
     response = requests.post('https://rimrock.plgrid.pl/api/jobs',
@@ -63,13 +64,6 @@ def fs_request(request):
     else:
         return HttpResponse(response.reason, status=500)
     return HttpResponse(status=200)
-
-
-# else:
-#     executor = CommandExecutor(request.data)
-#     execute = executor.execute()
-#     json = execute.toJSON()
-#     return HttpResponse(json)
 
 
 @api_view(['GET', 'POST'])
@@ -127,11 +121,15 @@ def jobs(request):
         model_to_dict(Job.objects.create(job_id=job_id, status=status, start_time=start_time, end_time=end_time)))
 
 
-from types import SimpleNamespace
-
-
 @api_view(['GET'])
 def job_result(request, job_id):
     job_result = JobResult.objects.get(pk=job_id)
     # todo send images related to this job result
     return JsonResponse(json.loads(job_result.response_json.replace("'", "\"")))
+
+
+@api_view(['GET'])
+def images(request, image_id):
+    return HttpResponse(Image.objects.get(pk=image_id).image_binary, 'image/png')
+
+
