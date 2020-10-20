@@ -4,6 +4,7 @@ export class FeatureSelectionParameters {
   svm: boolean;
   nn: boolean;
   hpc: boolean;
+  target: string;
   csvBase64: string | ArrayBuffer;
 }
 

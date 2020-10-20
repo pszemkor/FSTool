@@ -30,5 +30,5 @@ urlpatterns = [
     path('classify', classify),
     path('settings', settings),
     path('jobs', jobs),
-    path('result/<str:job_id>', job_result)
+    path('jobs/result/<str:job_id>', job_result)
 ]

@@ -1,5 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {FeatureSelectionResults} from '../shared/featureselectionresults';
+import {JobsService} from '../services/jobs.service';
+import {ActivatedRoute} from '@angular/router';
 
 @Component({
   selector: 'app-results',
@@ -12,11 +14,17 @@ export class ResultsComponent implements OnInit {
   columnsToDisplayFeatures = ['index', 'name', 'score'];
   columnsToDisplayClf = ['classifier', 'accuracy', 'f1', 'recall'];
 
-  constructor() { }
-
-  ngOnInit(): void {
+  constructor(private jobsService: JobsService, private route: ActivatedRoute) {
   }
 
+  ngOnInit(): void {
+    if (this.results == null) {
+      this.route.paramMap.subscribe(m =>
+        this.jobsService.getJobResult(m.get('jobId')).subscribe(res => {
+          this.results = res;
+        }));
+    }
+  }
 }
 
 

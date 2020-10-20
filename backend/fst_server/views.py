@@ -1,8 +1,8 @@
-import ntpath
+import os
+import json
 import os
 import sys
 import tempfile
-import time
 from datetime import datetime
 
 import requests
@@ -17,62 +17,59 @@ sys.path.append(os.path.abspath('..'))
 from execution.CommandExecutor import CommandExecutor
 
 
-@api_view(['GET', 'POST'])
+@api_view(['POST'])
 def fs_request(request):
-    if request.method == 'POST':
-        if request.data['hpc']:
-            settings = HPCSettings.objects.all()
-            data = request.data
-            if len(settings) != 1:
-                return HttpResponse("Missing settings", status=500)
-            user_settings = settings[0]
-            fd, filename = tempfile.mkstemp()
-            name_of_file = ""
-            workdir = '/net/scratch/people/{}'.format(user_settings.user_name)
-            try:
-                with os.fdopen(fd, 'w') as tmp:
-                    tmp.write(data['csvBase64'])
-                with open(filename) as tmp:
-                    # todo: 'prometheus' should be passed as a parameter
-                    path = 'https://data.plgrid.pl/upload/prometheus' + workdir + '/'
-                    name_of_file = tmp.name
-                    file_upload_response = requests.post(path,
-                                                         files=dict(file=tmp),
-                                                         headers={
-                                                             "PROXY": user_settings.proxy_certificate})
-                    if not file_upload_response.ok:
-                        return HttpResponse("Could not upload file", status=500)
+    # if request.data['hpc']:
+    settings = HPCSettings.objects.all()
+    data = request.data
+    if len(settings) != 1:
+        return HttpResponse("Missing settings", status=500)
+    user_settings = settings[0]
+    fd, filename = tempfile.mkstemp()
+    name_of_file = ""
+    workdir = '/net/scratch/people/{}'.format(user_settings.user_name)
+    try:
+        with os.fdopen(fd, 'w') as tmp:
+            tmp.write(data['csvBase64'])
+        with open(filename) as tmp:
+            # todo: 'prometheus' should be passed as a parameter
+            path = 'https://data.plgrid.pl/upload/prometheus' + workdir + '/'
+            name_of_file = tmp.name
+            file_upload_response = requests.post(path, files=dict(file=tmp),
+                                                 headers={"PROXY": user_settings.proxy_certificate})
+            if not file_upload_response.ok:
+                return HttpResponse("Could not upload file", status=500)
 
-            finally:
-                os.remove(filename)
+    finally:
+        os.remove(filename)
 
-            script = ""
-            with open('backend/execution/script.slurm') as f:
-                script = f.read()
-                # todo: the target should be parametrized
-                script = script.format('${SCRATCH}', '${SLURM_JOBID}', 'SEX', request.data['algoType'],
-                                       os.path.basename(name_of_file), '10')
+    script = ""
+    with open('execution/script.slurm') as f:
+        script = f.read()
+        # todo: the target should be parametrized
+        script = script.format('${SCRATCH}', '${SLURM_JOBID}', 'SEX', request.data['algoType'],
+                               os.path.basename(name_of_file), '10')
 
-            response = requests.post('https://rimrock.plgrid.pl/api/jobs',
-                                     json={'host': user_settings.host,
-                                           'working_directory': workdir,
-                                           'script': script},
-                                     headers={'Content-type': 'application/json',
-                                              "PROXY": user_settings.proxy_certificate})
-            response_content = response.json()
-            if response.ok:
-                print(response_content)
-                Job.objects.create(job_id=response_content['job_id'], status=response_content['status'],
-                                   start_time=datetime.now().strftime("%I:%M%p on %B %d, %Y"))
-            else:
-                print(response_content)
-                return HttpResponse(response.reason, status=500)
-            return HttpResponse(response.text)
-        else:
-            executor = CommandExecutor(request.data)
-            execute = executor.execute()
-            json = execute.toJSON()
-            return HttpResponse(json)
+    response = requests.post('https://rimrock.plgrid.pl/api/jobs',
+                             json={'host': user_settings.host,
+                                   'working_directory': workdir,
+                                   'script': script},
+                             headers={'Content-type': 'application/json',
+                                      "PROXY": user_settings.proxy_certificate})
+    response_content = response.json()
+    if response.ok:
+        Job.objects.create(job_id=response_content['job_id'], status=response_content['status'],
+                           start_time=datetime.now().strftime("%I:%M%p on %B %d, %Y"))
+    else:
+        return HttpResponse(response.reason, status=500)
+    return HttpResponse(status=200)
+
+
+# else:
+#     executor = CommandExecutor(request.data)
+#     execute = executor.execute()
+#     json = execute.toJSON()
+#     return HttpResponse(json)
 
 
 @api_view(['GET', 'POST'])
@@ -130,8 +127,11 @@ def jobs(request):
         model_to_dict(Job.objects.create(job_id=job_id, status=status, start_time=start_time, end_time=end_time)))
 
 
+from types import SimpleNamespace
+
+
 @api_view(['GET'])
 def job_result(request, job_id):
     job_result = JobResult.objects.get(pk=job_id)
     # todo send images related to this job result
-    return JsonResponse(model_to_dict(job_result))
+    return JsonResponse(json.loads(job_result.response_json.replace("'", "\"")))

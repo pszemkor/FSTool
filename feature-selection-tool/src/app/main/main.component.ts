@@ -23,7 +23,7 @@ export class MainComponent implements OnInit {
     this.results = null;
     this.featureSelectionService.postRequest(this.params)
       .subscribe(response => { this.results = response; this.params = null; },
-        error => {this.errorMessage = error; this.params = null;});
+        error => {this.errorMessage = error; this.params = null; });
   }
 
 
