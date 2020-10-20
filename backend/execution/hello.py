@@ -6,7 +6,6 @@ import os
 
 import base64
 from io import StringIO
-import csv
 
 import pandas as pd
 import numpy as np
@@ -21,10 +20,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
-from random import sample
-from collections import defaultdict
-from statistics import median
-from pandarallel import pandarallel
 import json
 
 
@@ -220,24 +215,37 @@ def __extract_dataframe(base64_data):
 
 
 def read(filename):
-    base64_csv = None
     with open(os.path.join(os.getcwd(), filename)) as data:
         base64_csv = data.read()
     return base64_csv
+
+
+class Configuration:
+    def __init__(self, path):
+        with open(path, 'r') as conf:
+            conf_dict = json.loads(conf.read())
+        self.k = conf_dict['k']
+        self.classifiers = conf_dict['classifiers']
+        self.algorithms = conf_dict['algorithms']
+        self.target = conf_dict['target']
+        self.data_path = conf_dict['data_path']
+        self.case = conf_dict['case']
 
 
 # READ ARGUMENTS
 args = sys.argv
 scratch_path = args[1]
 job_id = args[2]
+config_path = args[3]
+config = Configuration(config_path)
 results_path = os.path.join(scratch_path, job_id)
 os.mkdir(results_path)
-target = args[3]
-algorithm_name = args[4]
-input_data_filename = args[5]
+target = config.target
+algorithm_name = config.algorithms[0]
+input_data_filename = config.data_path
 data = read(input_data_filename)
 df, labels = read_data(data, target)
-k = int(args[6])
+k = int(config.k)
 # remove ABS from dataset
 cols = [c for c in df.columns if c.lower()[:3] != 'abs']
 df = df[cols]

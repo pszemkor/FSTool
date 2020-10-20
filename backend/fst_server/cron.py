@@ -6,15 +6,8 @@ from django.db.models import Q
 import json
 import sys
 import logging
-
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
-
+from fst_server.logger import get_logger
+logger = get_logger()
 
 def update_jobs():
     logger.info("Performing updates...")
