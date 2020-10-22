@@ -200,36 +200,7 @@ def get_best_k_features(forest, train_features, k, results_path, plot=True):
     return selected_features, '/assets/img/rf_plot.png'
 
 
-def read_data(base64_data: str, target):
-    df = __extract_dataframe(base64_data)
-    labels = df[target].values
-    del df[target]
-    df = df[df.select_dtypes([np.number]).columns].dropna(axis=1)
-    return df, labels
 
-
-def __extract_dataframe(base64_data):
-    i = base64_data.find(",")
-    data_str = base64.b64decode(base64_data[i + 1:]).decode('utf-8')
-    return pd.read_csv(StringIO(data_str))
-
-
-def read(filename):
-    with open(os.path.join(os.getcwd(), filename)) as data:
-        base64_csv = data.read()
-    return base64_csv
-
-
-class Configuration:
-    def __init__(self, path):
-        with open(path, 'r') as conf:
-            conf_dict = json.loads(conf.read())
-        self.k = conf_dict['k']
-        self.classifiers = conf_dict['classifiers']
-        self.algorithms = conf_dict['algorithms']
-        self.target = conf_dict['target']
-        self.data_path = conf_dict['data_path']
-        self.case = conf_dict['case']
 
 
 # READ ARGUMENTS
