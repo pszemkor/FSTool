@@ -1,1 +1,13 @@
-{"k": 10, "case": "F", "algorithms": ["rf" ], "classifiers": ["svm"], "target": "SEX", "data_path": "/Users/przemyslawjablecki/FeatureSelection/data.txt"}
+{
+  "k": 10,
+  "case": "F",
+  "algorithms": [
+    "rf"
+  ],
+  "classifiers": [
+    "svm"
+  ],
+  "target": "SEX",
+  "data_path": "/Users/przemyslawjablecki/FeatureSelection/data.txt",
+  "metric": "f1"
+}

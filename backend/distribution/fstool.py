@@ -30,40 +30,6 @@ import csv
 import time
 from pathlib import Path
 
-# %% md
-
-## Data preparation
-
-# %%
-
-# MAKE FVL and RES datasets
-for kind in ['fvl', 'res']:
-    target = 'PATIENT'
-    cases = pd.read_csv('../data/hcl/{}_cases.csv'.format(kind), index_col=0)
-    cases[target] = 'case'
-    controls = pd.read_csv("../data/hcl/{}_controls.csv".format(kind), index_col=0)
-    controls[target] = 'control'
-
-    df = pd.concat([cases, controls], ignore_index=True, sort=False)
-    labels = list(df[target].values)
-
-    # remove ABS from dataset
-    cols = [c for c in df.columns if c.lower()[:3] != 'abs']
-    df = df[cols]
-
-    df = df[df.select_dtypes([np.number]).columns].dropna(axis='columns')
-    non_na_features = list(df)
-
-    df = df[non_na_features]
-    df[target] = labels
-    df.to_csv('../data/hcl/{}.csv'.format(kind))
-
-
-# %% md
-
-## Info based
-
-# %%
 
 def iind(matrix, alpha=0.5):
     p = alpha
@@ -179,7 +145,7 @@ pandarallel.initialize(progress_bar=False)
 # %%
 
 def save_feats(k, patient_id, feats):
-    with open('k{}_patient{}.csv'.format(k, patient_ind), 'w') as out:
+    with open('k{}_patient{}.csv'.format(k, patient_id), 'w') as out:
         csv_out = csv.writer(out)
         csv_out.writerow(['feat', 'score'])
         for row in feats:
@@ -407,16 +373,10 @@ class FeatureSelectorsAggregator:
         self.name = 'FeatureSelectorsAggregator'
         self.feature_selectors = feature_selectors
 
-    def set_k(self, k):
-        self.k = k
-
     def get_selectors_names(self):
         return [selector.get_name() for selector in self.feature_selectors]
 
-    def get_features_importances(self):
-        return self.features_importances
-
-    def get_features_subset(self):
+    def get_features(self):
         """
         Returned value: 'selectors_features_subset': str -> list[tuples(string, float)]
         Key: selector name
@@ -426,7 +386,7 @@ class FeatureSelectorsAggregator:
         for f_selector in self.feature_selectors:
             selector_name = f_selector.get_name()
             names_importances = list(zip(self.features_names, self.features_importances[selector_name]))
-            names_importances = sorted(names_importances, key=lambda x: x[1], reverse=True)[:self.k]
+            names_importances = sorted(names_importances, key=lambda x: x[1], reverse=True)
             selectors_features_subset[selector_name] = names_importances
 
         return selectors_features_subset
@@ -434,12 +394,12 @@ class FeatureSelectorsAggregator:
     def fit(self, X_train, y_train, subset_no):
         self.X_train = X_train
         self.features_names = list(X_train.columns.values)
-        seletector_f_importances = {}
+        selector_f_importances = {}
         for f_selector in self.feature_selectors:
             f_selector.fit(X_train, y_train, subset_no)
-            seletector_f_importances[f_selector.get_name()] = f_selector.get_features_importances()
+            selector_f_importances[f_selector.get_name()] = f_selector.get_features_importances()
 
-        self.features_importances = seletector_f_importances
+        self.features_importances = selector_f_importances
 
     # def plot_importances(self):
     #     if TARGET in self.X_train:
@@ -462,7 +422,7 @@ class CVEvaluator:
         and performing GridSearchCV on the whole dataset to find the most accurate/sensitive classifier.
         """
 
-    def __init__(self, n_splits, fs_aggregator, labels, data, kind, clfs):
+    def __init__(self, n_splits, fs_aggregator, labels, data, kind, clfs, config):
         """
         Init CVEvaluator.
 
@@ -480,40 +440,55 @@ class CVEvaluator:
         self.data = data
         self.kind = kind
         self.clfs = clfs
+        self.config: Configuration = config
 
     def perform_evaluation(self):
         skf = StratifiedKFold(n_splits=self.n_splits, random_state=RANDOM_STATE, shuffle=True)
         selector_reports = {name: SelectorReport(name) for name in self.fs_aggregator.get_selectors_names()}
 
+        features_rank_per_fold = defaultdict(list)
         for i, index in enumerate(skf.split(self.data, self.labels)):
             train_index, test_index = index
             X_train, X_test = self.data[self.data.index.isin(train_index)], self.data[self.data.index.isin(test_index)]
             y_train, y_test = [self.labels[i] for i in train_index], [self.labels[i] for i in test_index]
 
             self.fs_aggregator.fit(X_train, y_train, i)
-            f_subset = self.fs_aggregator.get_features_subset()
-            for selector_name, selected_features in f_subset.items():
-                fold_report = self.get_fold_report(X_test, X_train, selected_features, selector_name, y_test, y_train)
+            selector_features = self.fs_aggregator.get_features()
+            for selector_name, selected_features in selector_features.items():
+                fold_report, features_rank = self.get_fold_report(X_train, X_test, y_train, y_test, selected_features)
                 selector_reports[selector_name].add_fold_report(fold_report)
+                features_rank_per_fold[selector_name].append(features_rank)
 
-        for name, selector_report in selector_reports.items():
-            for fold_report in selector_report.fold_reports:
-                features_importances = fold_report.features_importances
-                N = len(features_importances)
+        for selector_name, selector_ranks in features_rank_per_fold.items():
+            max_rank = {}
+            for fold_rank in selector_ranks:
+                # computing the sum of metric_vals for every feature
+                for f_name, rank_val in fold_rank.items():
+                    max_rank[f_name] = max_rank.get(f_name, 0) + rank_val
 
+            final_features_rank = sorted(list(max_rank.items()), key=lambda item: item[1], reverse=True)
+            selector_reports[selector_name].set_selected_features(final_features_rank[:self.config.k])
 
-
-    def get_fold_report(self, X_test, X_train, selected_features, selector_name, y_test, y_train):
-        fold_report = FoldReport(selected_features)
+    def get_fold_report(self, X_train, X_test, y_train, y_test, selected_features):
+        fold_report = FoldReport(selected_features[:self.config.k])
         features_name = [name for name, i in selected_features]
         X_train, X_test = X_train[features_name], X_test[features_name]
+        metric_vals = []
         for clf in self.clfs:
             clf.fit(X_train, y_train)
             y_predicted = clf.predict(X_test)
             report = classification_report(y_test, y_predicted, output_dict=True)
             fold_report.add_classification_report(str(clf).upper(), report)
-        return fold_report
+            metric_val = report['weighted avg'][self.config.metric]
+            metric_vals.append(metric_val)
+        avg_metric = sum(metric_vals) / len(metric_vals)
+        N = len(selected_features)
+        features_rank = {}
+        for rank, (name, importance) in enumerate(selected_features):
+            rank_val = avg_metric * (N - rank + 1)
+            features_rank[name] = rank_val
 
+        return fold_report, features_rank
 
 
 class SelectorReport:
@@ -581,14 +556,15 @@ class Configuration:
         self.target = conf_dict['target']
         self.data_path = conf_dict['data_path']
         self.case = conf_dict['case']
+        self.metric = conf_dict['metric']
 
 
 pandarallel.initialize(progress_bar=False)
 # READ ARGUMENTS
-args = sys.argv
-scratch_path = args[1]
-job_id = args[2]
-config_path = args[3]
+# args = sys.argv
+# scratch_path = args[1]
+# job_id = args[2]
+# config_path = args[3]
 scratch_path = '/Users/przemyslawjablecki/FeatureSelection'
 job_id = '123'
 config_path = '/Users/przemyslawjablecki/FeatureSelection/config.json'
@@ -609,13 +585,11 @@ selectors = {'rf': RandomForestSelector(),
              'skbest': SelectKBestSelector(),
              'lasso': LassoSelector(),
              'elastic': ElasticNetSelector(),
-             'pearson': RandomCorrelatedRemovalSelector(),
-             'rmcfs': MCFSSelector(),
-             'kendall': RandomCorrelatedRemovalSelector()}
+             'rmcfs': MCFSSelector()}
 
 fs_selectors = [selectors[alg] for alg in config.algorithms]
 fs_aggregator = FeatureSelectorsAggregator(fs_selectors)
 fs_aggregator.set_k(k)
-neigh = KNeighborsClassifier(n_neighbors=3)
-cv_evaluator = CVEvaluator(N_SPLITS, fs_aggregator, labels, df, KIND, neigh)
+# neigh =
+cv_evaluator = CVEvaluator(N_SPLITS, fs_aggregator, labels, df, KIND, [KNeighborsClassifier(n_neighbors=3)], config)
 cv_evaluator.perform_evaluation()
