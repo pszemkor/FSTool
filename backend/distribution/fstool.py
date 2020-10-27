@@ -3,13 +3,12 @@
 from warnings import filterwarnings
 
 filterwarnings('ignore')
-
+import pickle
 import pandas as pd
 import numpy as np
 import base64
 import json
 import os
-import sys
 import matplotlib.pyplot as plt
 from io import StringIO
 from sklearn.ensemble import RandomForestClassifier
@@ -18,7 +17,6 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import classification_report
 from sklearn.linear_model import LassoCV, ElasticNetCV
 from sklearn.feature_selection import SelectKBest, chi2
-
 from rpy2.robjects import r, pandas2ri
 import rpy2.robjects as ro
 from rpy2.robjects.conversion import localconverter
@@ -374,7 +372,7 @@ class FeatureSelectorsAggregator:
         self.feature_selectors = feature_selectors
 
     def get_selectors_names(self):
-        return [selector.get_name() for selector in self.feature_selectors]
+        return [selector.__class__.__name__ for selector in self.feature_selectors]
 
     def get_features(self):
         """
@@ -384,7 +382,7 @@ class FeatureSelectorsAggregator:
         """
         selectors_features_subset = {}
         for f_selector in self.feature_selectors:
-            selector_name = f_selector.get_name()
+            selector_name = f_selector.__class__.__name__
             names_importances = list(zip(self.features_names, self.features_importances[selector_name]))
             names_importances = sorted(names_importances, key=lambda x: x[1], reverse=True)
             selectors_features_subset[selector_name] = names_importances
@@ -397,7 +395,7 @@ class FeatureSelectorsAggregator:
         selector_f_importances = {}
         for f_selector in self.feature_selectors:
             f_selector.fit(X_train, y_train, subset_no)
-            selector_f_importances[f_selector.get_name()] = f_selector.get_features_importances()
+            selector_f_importances[f_selector.__class__.__name__] = f_selector.get_features_importances()
 
         self.features_importances = selector_f_importances
 
@@ -468,6 +466,7 @@ class CVEvaluator:
 
             final_features_rank = sorted(list(max_rank.items()), key=lambda item: item[1], reverse=True)
             selector_reports[selector_name].set_selected_features(final_features_rank[:self.config.k])
+        return selector_reports
 
     def get_fold_report(self, X_train, X_test, y_train, y_test, selected_features):
         fold_report = FoldReport(selected_features[:self.config.k])
@@ -559,6 +558,13 @@ class Configuration:
         self.metric = conf_dict['metric']
 
 
+def write_pickles(selector_path, selector_name, df, features, labels, classifiers):
+    for cls in classifiers:
+        cls.fit(df[features], labels)
+        pickle.dump(cls,
+                    open(os.path.join(selector_path, "{}-{}.p".format(selector_name, cls.__class__.__name__)), "wb"))
+
+
 pandarallel.initialize(progress_bar=False)
 # READ ARGUMENTS
 # args = sys.argv
@@ -572,8 +578,8 @@ config = Configuration(config_path)
 
 results_path = os.path.join(scratch_path, job_id)
 os.mkdir(results_path)
+
 target = config.target
-algorithm_name = config.algorithms[0]
 input_data_filename = config.data_path
 data = DataReader().read(input_data_filename)
 df, labels = DataReader().read_data(data, target)
@@ -589,7 +595,29 @@ selectors = {'rf': RandomForestSelector(),
 
 fs_selectors = [selectors[alg] for alg in config.algorithms]
 fs_aggregator = FeatureSelectorsAggregator(fs_selectors)
-fs_aggregator.set_k(k)
-# neigh =
 cv_evaluator = CVEvaluator(N_SPLITS, fs_aggregator, labels, df, KIND, [KNeighborsClassifier(n_neighbors=3)], config)
-cv_evaluator.perform_evaluation()
+selectors_reports = cv_evaluator.perform_evaluation()
+classifiers = [KNeighborsClassifier(n_neighbors=3)]
+import requests
+
+for selector in fs_selectors:
+    selector_name = selector.__class__.__name__
+    report: SelectorReport = selectors_reports[selector_name]
+    features = list(map(lambda item: item[0], report.selected_features))
+    selector_path = os.path.join(results_path, selector_name)
+    os.mkdir(selector_path)
+
+    write_pickles(selector_path, selector_name, df, features, labels, classifiers)
+
+# import requests
+#
+# results_path = 'https://data.plgrid.pl/download/prometheus/net/scratch/people/plgprzjab/RandomForestSelector-KNeighborsClassifier.p'
+# header_with_proxy = {
+#     "PROXY": 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUR5VENDQXJHZ0F3SUJBZ0lFRXF1bUFUQU5CZ2txaGtpRzl3MEJBUXNGQURCNE1Rc3dDUVlEVlFRR0V3SlEKVERFUU1BNEdBMVVFQ2hNSFVFd3RSM0pwWkRFVE1CRUdBMVVFQ2hNS1ZYcDVkR3R2ZDI1cGF6RVFNQTRHQTFVRQpDaE1IVUV3dFIzSnBaREVjTUJvR0ExVUVBeE1UVUhKNlpXMTVjMnhoZHlCS1lXSnNaV05yYVRFU01CQUdBMVVFCkF4TUpjR3huY0hKNmFtRmlNQjRYRFRJd01UQXlOekUxTURVME5Gb1hEVEl3TVRBek1ERTFNVEEwTkZvd2dZd3gKQ3pBSkJnTlZCQVlUQWxCTU1SQXdEZ1lEVlFRS0V3ZFFUQzFIY21sa01STXdFUVlEVlFRS0V3cFZlbmwwYTI5MwpibWxyTVJBd0RnWURWUVFLRXdkUVRDMUhjbWxrTVJ3d0dnWURWUVFERXhOUWNucGxiWGx6YkdGM0lFcGhZbXhsClkydHBNUkl3RUFZRFZRUURFd2x3Ykdkd2NucHFZV0l4RWpBUUJnTlZCQU1UQ1RNeE16SXpPVEEwTVRDQ0FTSXcKRFFZSktvWklodmNOQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCQUx6SXIrRVdNRXJ3c3FIa1FPcFlabWxZejFKMAo4cndKbU9yUW9BbjZMMjc0azBFSytiVHVRVjRBSHBlQW9VbVNUNzEzMyt2ai9YbG9EM25DOEpuZTcxQ0JpSUc2CjBobFZmeFpQZXdyZGVjRVM1TVFuOHRXR2FKOHB6UnNBWHZyOXV1OStHQVBjOUx3SlVPWXBwdjVsNlhaZVdFL08KN2lrZHJ4VDM5ZG9kUE1BWFE1dUJ3L0FNMTc3N2ptMDg0ZWQxMU5ad2JqUHNpck1LSUhsYjdRRDhtUkpVUHpGbgpNNXZXRUg5RUxsaXpuWVdTRmNMeGNRWVBOUVI1em9MaEd4Y2UzZk1OM0JNYnUvbUl0aitSOUNQWjhPUFpqYmt6ClhjUDg0YlRkN2grNWw2N29kQzN6ajBiMEhqb2xHNjBCZnI2TjFVb0NETmYzRkllVWFsVis0VWZXSzAwQ0F3RUEKQWFOR01FUXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUhBd0l3RGdZRFZSMFBBUUgvQkFRREFnU3dNQjBHQ0NzRwpBUVVGQndFT0FRSC9CQTR3RERBS0JnZ3JCZ0VGQlFjVkFUQU5CZ2txaGtpRzl3MEJBUXNGQUFPQ0FRRUF3RlpXCnNDaTFQdWJQMWVuZ21ybjRHQ0VBOFBidHY3UXJ3SVl4ZjdiU1hZcFRITnJkY01ubFEyeEpWdmVISExnL3ltVGUKQnh6K1hyQUpNMjNWSVplQ3FPNDRLVHd4VmpjeENTMzVqWFRFRHkvbjBCRm9QaXlYN0dRb0R4V283VXhkc25GZQp0SXFzeXhxWWc4TkRrMkd6UkNZTHh6WEdtaEpxQjVGbmhpWFhsUk1XQ1JMZEgrVzZ1NFVsS0U1Z3BIbFcwWUNGClZUQUxTcXF3Uzkrdm5YeVVTZXZidEIvYVMrMzcwRG9jcmFCa3RpWC9ScnBTMEFkY1daVUFJR053TlZZckZzTEQKRTZ5TEx0TEFLeWo2VW12b3lmWm02QkNIUk1lZitOZ2ptWWpsYlZkckplOFRsUkdmVHhBb0tib2EwUVkyWHloUQpEWFd5OWlpb2kxY0F5V2ZBOVE9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCi0tLS0tQkVHSU4gUFJJVkFURSBLRVktLS0tLQpNSUlFdmdJQkFEQU5CZ2txaGtpRzl3MEJBUUVGQUFTQ0JLZ3dnZ1NrQWdFQUFvSUJBUUM4eUsvaEZqQks4TEtoCjVFRHFXR1pwV005U2RQSzhDWmpxMEtBSitpOXUrSk5CQ3ZtMDdrRmVBQjZYZ0tGSmtrKzlkOS9yNC8xNWFBOTUKd3ZDWjN1OVFnWWlCdXRJWlZYOFdUM3NLM1huQkV1VEVKL0xWaG1pZktjMGJBRjc2L2JydmZoZ0QzUFM4Q1ZEbQpLYWIrWmVsMlhsaFB6dTRwSGE4VTkvWGFIVHpBRjBPYmdjUHdETmUrKzQ1dFBPSG5kZFRXY0c0ejdJcXpDaUI1ClcrMEEvSmtTVkQ4eFp6T2IxaEIvUkM1WXM1MkZraFhDOFhFR0R6VUVlYzZDNFJzWEh0M3pEZHdURzd2NWlMWS8Ka2ZRajJmRGoyWTI1TTEzRC9PRzAzZTRmdVpldTZIUXQ4NDlHOUI0NkpSdXRBWDYramRWS0Fnelg5eFNIbEdwVgpmdUZIMWl0TkFnTUJBQUVDZ2dFQVZleXVDSy8xdVJaRzUrS2hIVWl4REQvczFTWC9tVkJ3OW1lUWdCb01YdURxCi9RN0d5dkFxZG1OdGlSMTF5NnU1ZVk1SEwvR3NYQWJlREZpSzlDNEJGTTV3V0VPMC91em9GRHFHMFZJdTZZNzAKNnNjWUF0SFRhcVkzQVpRd3B1SzNvK3ZyZUU2b1liR0h6Y3FsaEdMVVdSamw3eVZMUnhHSXIrMlFTLzlFdUZUVwpNdEJHQWZ3RzkxdDQxZVVSbmpkUW5CSURWU3AwTGN3d2NJZFhBMGRHc1FtNWMwbTB1N3lnbXNTUy9scUJvYW1KCmFaUjF5Zk91NTBKNE1tR2ZydUZUSUxpVlB3TjI1Z0xBQjFZQlYyQ2JSbDd0MHRvWndKMjZlc1Iwbzc5T25xUjEKa3ZIOC9LSzY4SGcvZ0s4MXZLT0NGaC9tWVBZanVEMVk1YzNVVU1IaERRS0JnUURodzdFdUxMNkdiaVRwSzUxcQpBLysvV0x6R0FSWmI2N3llMUs5clhTOHlEUzBMcjdFWFlKd2FRdy9TcEh3cU1YM2lCS1FrSzZGZHNaR1VHTmkrCkRadFQyR2szSFgrZ0NjaUx0bEoxb2s4alptbWtaalo4RXY4RGtHanVRcXI2MjVnZEZhRjN6b083M3ZSNDVPZlIKaEdDTkVxaHNnT2RxYzhQbjNiTk8rSlBYTXdLQmdRRFdFUjk5NUxtVVBLUUNNdkNEdzQvRnFnaElmTjUyTGtMSQovNTh6QXpWeUFMSUQwdGFLM0lKMEJaZ1lPT3R3Q0FucFR2bGMxSEYwbWtxR2YwUkdqQjVVTXRTVnlobXJFVGRECkFOMytkSjRtYTJNTnRNcTBYdlZZUVVrT0NpWVFreUJoZDZ4YUVEb2w1SHk4SkkwQVdRQ1NKOHlYQVBmWjhpbTAKTE5CODllUHpmd0tCZ1FEY3J1dTlGU1BRU0U1d1ZwL3pCNkd4SzA2cnhsaFMxaVowbzdZdG50TUplL095WHJVZgpBdUxVa1FVZ2hJU1N3Zm9wT3h3djl5NHZaZW5GK0Z1MXU1cy81R1ZFNk9MZVQzSG5qL3NlM2QrNTNOd2JSWWF3CjFlak5WUllkQUxJZHNSWUtLQ0REK2V5dmNvdEt1WWNaT09zZ08wTERmV1c0bXh5K3crb0lvZGZ5SFFLQmdGU3QKU1V1L1lqbGxFMnRiUXhDY0Z3OFZoMWxGSzZxTCtoY1FKcVZESzYwQTRXbnB5THY5SmcxRytUYjdyUVlQNS92RwpKWlcyNDNwQVhpSjl6VUFxeFFTQlp0NHBwNldubGJpSGEwandVRzdhSThDVU4ycko5VHNIK0NINW1iME10YzVZClRIRUQ0anlDK1dSakFQT1dRVWVQUHJxc3cxNFBFTGdZMGcvY0pHTjVBb0dCQU1JNm9MVUMzdE5aQkhNUUVSRUUKOFZiZjVWY3BGbGNiV2hlZXBZcFoyT1E3eVlHcXBBR2dSaWhQZ3d4Z1ZYdWZmTmJNT1Y3MmxYcEQwTU9KUXYycgpqY2FhNG5KZmp3azUzUkN3TGFNbUp5dGlMZlAvZVNlaEJnaFNUK1FmbThtb3hlTm1VRHBIVTNLWFNRRHFFRmM4CkFkcks4aU94bE1IL1N1MTBteVVwVk0rMwotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCi0tLS0tQkVHSU4gQ0VSVElGSUNBVEUtLS0tLQpNSUlFK1RDQ0F1R2dBd0lCQWdJSU1ESkNpUURMejFnd0RRWUpLb1pJaHZjTkFRRUxCUUF3TXpFTE1Ba0dBMVVFCkJoTUNVRXd4RURBT0JnTlZCQW9UQjFCTUxVZHlhV1F4RWpBUUJnTlZCQU1UQ1ZOcGJYQnNaU0JEUVRBZUZ3MHkKTURBME1EWXhOekl5TXpKYUZ3MHlNVEEwTURZeE56SXlNekphTUhneEN6QUpCZ05WQkFZVEFsQk1NUkF3RGdZRApWUVFLRXdkUVRDMUhjbWxrTVJNd0VRWURWUVFLRXdwVmVubDBhMjkzYm1sck1SQXdEZ1lEVlFRS0V3ZFFUQzFICmNtbGtNUnd3R2dZRFZRUURFeE5RY25wbGJYbHpiR0YzSUVwaFlteGxZMnRwTVJJd0VBWURWUVFERXdsd2JHZHcKY25wcVlXSXdnZ0VpTUEwR0NTcUdTSWIzRFFFQkFRVUFBNElCRHdBd2dnRUtBb0lCQVFESXVNRzZOeU5LamhRNAppbllTN1RjQzlrYjQvWW5mYWpqRUR0WHExUDhOVE0vd1JGTG9CYUc5Ukp6TUJqelplMWFiR1FsK01tdFNpS2pWCkRHck51eEJkRHVDMlFSNHZ5K3htbVFHODJuSjZzMkhjVGlsUWVLeHQzaDhlL3ZNUjN1eWxkWEVXTzJ5YStRU2sKQ2g2d2k5QlJRd0lmSkNiRDNwNnp5SmNrVGZhbUNjQXpKZHdCODhjYzQ0M0pocmMvaDRYWHArU0JYTmdKbFc5MApPdUF0ZHdYejZiMGNhRHJCZDBXMkhYMUdCRitLdlV4UzE0anVCVkRIcW9QSHg1TXFDQVhteHR0T2FpN3lCbjZrCktQMXFOL09BVlZ4WHlDWncxYkJWZDRLQUcreG9OMEZwSndKVXNESHpGU21qU2c1c1pyenBTUEVFWkRTK05WYzkKdGVlcGJKbUxBZ01CQUFHamdjc3dnY2d3SFFZRFZSME9CQllFRkdxK0YwSGgxVFczWjBQMUZ6OFRUcXFPUHJ1cApNQXdHQTFVZEV3RUIvd1FDTUFBd0dnWURWUjBnQkJNd0VUQVBCZzByQmdFRUFZS1dMUUVCQVFFQ01EY0dBMVVkCkh3UXdNQzR3TEtBcW9DaUdKbWgwZEhBNkx5OXdiR2R5YVdRdGMyTmhMbmRqYzNNdWQzSnZZeTV3YkM5amNtd3UKWkdWeU1COEdBMVVkSXdRWU1CYUFGS2tUVVZsclJFdC9uS0gzT2N6WUFmeFVWVUF0TUJNR0ExVWRKUVFNTUFvRwpDQ3NHQVFVRkJ3TUNNQTRHQTFVZER3RUIvd1FFQXdJRXNEQU5CZ2txaGtpRzl3MEJBUXNGQUFPQ0FnRUFJeTZyClZUUDMzaGN0ZWpyYmJNcllWUGwzZElTVnlsczd2cEJpZkNlZEJwNDNkazRkbEtqS0lIWGkrQXpLMGVObUFybEUKQkdWNGNoQTVVbnJyL08wM3UwcXJWVVJTYlB5RmhLT2xWVDZ2RUdiNStYQ1VuL01YYktHaVFQYnNTWWdSaCtPRApWWG51aldCb3BINWhEN3lJNHI4b1hEVmtNS21MTGVvTzdUdE9ORE5JZENBczArdGtBV0JHT294K0RlVFhDd1NuCnBUWWFHaVBjbWRCalMzcEVIbUtsWUw3bkhPOXpMK2lkcmFZdUg5cWJJUkthWFZqS3BvcnhwRXZybndURUppTXcKWlV1VVdEK3B6TTR3NldmdDZ1TUo0UzAxd3A5aW9yRnJtSDUzQ2lLb1ZsSTFiSU9uR0NUY2JDZ3Q3MlBZQ2xlbwp2SkM4bGduZ3gxTHFVM1F2VXQrdExjWVoydDZWaTZzY1hOeTU5eHZJTWxDQitBSitHMmJ6bWJad1JTKzdiYVNhCjdncWFSemVWOFJkSkptWVNIVERxc0IrSUJUYlM0N3lKSWc1YkoxZWpFZ1RVS3BVOHowTE1sdTVKMUNqYkUya1gKODVyVmVHWmlLSzc0NkF5MDJXSjBoY0Qvc2dGcGdBb1h4MzE0MUxxTGpkcXpyZG9CZWZvczExZUJwc3VRMlAzQQpWMDYzVGJ6QllPcU9ydEdCYkk0TUJCOEIzak1lRzB1aE53R3pkZlR6ZTFIUGlzMkcxK0tiUWxRYjVwREE0ME90CmxPNzdZS0dLVkZHRlRHSVdZd2dDWk8rZW91WThUbzZ6bUJoTXZGbmVHV1Ywdis4RFlON3Avb3JhUG0ySEU0eW8KTGNTUTI3bTJkbjVqYzRyU1lpdDNSZzR1MVpidWJ0L2c5Qm9IRE5BPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg=='}
+# file = requests.get(results_path, headers=header_with_proxy)
+# from io import BytesIO
+# from django.db import models
+# import ast
+# # b = models.BinaryField()
+# c = pickle.loads(file.content)
+# print(c.__class__.__name__)
