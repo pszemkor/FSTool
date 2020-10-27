@@ -9,6 +9,7 @@ import numpy as np
 import base64
 import json
 import os
+from typing import List, Tuple
 import matplotlib.pyplot as plt
 from io import StringIO
 from sklearn.ensemble import RandomForestClassifier
@@ -500,9 +501,9 @@ class SelectorReport:
         fold_reports: List[FoldReport] - is a list of reports created for every fold
         selected_features: List[(str, float)] - list of pairs: feature name, sum of weighted_importance_per_fold
         """
-        self.selector_name = selector_name
-        self.fold_reports = []
-        self.selected_features = []
+        self.selector_name: str = selector_name
+        self.fold_reports: List[FoldReport] = []
+        self.selected_features: List[Tuple[str, float]] = []
 
     def add_fold_report(self, fold_report):
         self.fold_reports.append(fold_report)
@@ -517,7 +518,7 @@ class FoldReport:
         features_importances: List(str, float) - list of features and its importances within a fold
         reports: dict: str -> classification_report
         """
-        self.features_importances = features_importances
+        self.features_importances: List[str, float] = features_importances
         self.reports = {}
 
     def add_classification_report(self, clf_name, clf_report):
@@ -558,11 +559,27 @@ class Configuration:
         self.metric = conf_dict['metric']
 
 
-def write_pickles(selector_path, selector_name, df, features, labels, classifiers):
+def write_pickles(selector_path: str, selector_name: str, df: pd.DataFrame, features: list, labels: list,
+                  classifiers: list):
     for cls in classifiers:
         cls.fit(df[features], labels)
         pickle.dump(cls,
                     open(os.path.join(selector_path, "{}-{}.p".format(selector_name, cls.__class__.__name__)), "wb"))
+
+
+def write_graphs(selector_path: str, report: SelectorReport):
+    # write fold-specific information
+    for i, fold_report in enumerate(report.fold_reports):
+        lists = [list(t) for t in zip(*fold_report.features_importances)]
+        x = lists[0]
+        y = lists[1]
+        x_pos = [i for i, _ in enumerate(x)]
+        plt.barh(x_pos, y, color='green')
+        plt.ylabel("Feature")
+        plt.xlabel("Importance")
+        plt.title("Features selected features in the fold: " + str(i))
+        plt.yticks(x_pos, x)
+        plt.savefig(os.path.join(selector_path, 'fold_{}.png'.format(i)))
 
 
 pandarallel.initialize(progress_bar=False)
@@ -598,7 +615,6 @@ fs_aggregator = FeatureSelectorsAggregator(fs_selectors)
 cv_evaluator = CVEvaluator(N_SPLITS, fs_aggregator, labels, df, KIND, [KNeighborsClassifier(n_neighbors=3)], config)
 selectors_reports = cv_evaluator.perform_evaluation()
 classifiers = [KNeighborsClassifier(n_neighbors=3)]
-import requests
 
 for selector in fs_selectors:
     selector_name = selector.__class__.__name__
@@ -607,6 +623,7 @@ for selector in fs_selectors:
     selector_path = os.path.join(results_path, selector_name)
     os.mkdir(selector_path)
 
+    write_graphs(selector_path, report)
     write_pickles(selector_path, selector_name, df, features, labels, classifiers)
 
 # import requests
