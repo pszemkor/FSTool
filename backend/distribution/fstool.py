@@ -9,7 +9,7 @@ import numpy as np
 import base64
 import json
 import os
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 import matplotlib.pyplot as plt
 from io import StringIO
 from sklearn.ensemble import RandomForestClassifier
@@ -465,12 +465,14 @@ class CVEvaluator:
                 for f_name, rank_val in fold_rank.items():
                     max_rank[f_name] = max_rank.get(f_name, 0) + rank_val
 
-            final_features_rank = sorted(list(max_rank.items()), key=lambda item: item[1], reverse=True)
-            selector_reports[selector_name].set_selected_features(final_features_rank[:self.config.k])
+            final_features_rank = sorted(list(max_rank.items()), key=lambda item: item[1], reverse=True)[:self.config.k]
+            k_selected_features = [FeatureStats(name, importance) for name, importance in final_features_rank]
+            selector_reports[selector_name].set_selected_features(k_selected_features)
         return selector_reports
 
     def get_fold_report(self, X_train, X_test, y_train, y_test, selected_features):
-        fold_report = FoldReport(selected_features[:self.config.k])
+        fold_report = FoldReport(
+            [FeatureStats(name, importance) for name, importance in selected_features[:self.config.k]])
         features_name = [name for name, i in selected_features]
         X_train, X_test = X_train[features_name], X_test[features_name]
         metric_vals = []
@@ -490,6 +492,11 @@ class CVEvaluator:
 
         return fold_report, features_rank
 
+class FeatureStats:
+    def __init__(self, name, importance):
+        self.name = name
+        self.importance = importance
+
 
 class SelectorReport:
     def __init__(self, selector_name):
@@ -503,13 +510,17 @@ class SelectorReport:
         """
         self.selector_name: str = selector_name
         self.fold_reports: List[FoldReport] = []
-        self.selected_features: List[Tuple[str, float]] = []
+        self.selected_features: List[Dict[str, float]] = []
 
     def add_fold_report(self, fold_report):
         self.fold_reports.append(fold_report)
 
     def set_selected_features(self, selected_features):
         self.selected_features = selected_features
+
+    def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__,
+                          sort_keys=True, indent=4)
 
 
 class FoldReport:
@@ -518,7 +529,7 @@ class FoldReport:
         features_importances: List(str, float) - list of features and its importances within a fold
         reports: dict: str -> classification_report
         """
-        self.features_importances: List[str, float] = features_importances
+        self.features_importances: List[FeatureStats] = features_importances
         self.reports = {}
 
     def add_classification_report(self, clf_name, clf_report):
@@ -567,19 +578,34 @@ def write_pickles(selector_path: str, selector_name: str, df: pd.DataFrame, feat
                     open(os.path.join(selector_path, "{}-{}.p".format(selector_name, cls.__class__.__name__)), "wb"))
 
 
+def write_report(selector_path, report):
+    json_repr = report.to_json()
+    with open(os.path.join(selector_path, "report.json"), "w+") as f:
+        f.write(json_repr)
+
+
 def write_graphs(selector_path: str, report: SelectorReport):
     # write fold-specific information
     for i, fold_report in enumerate(report.fold_reports):
-        lists = [list(t) for t in zip(*fold_report.features_importances)]
-        x = lists[0]
-        y = lists[1]
+        x = []
+        y = []
+        for feature_stats in fold_report.features_importances:
+            x.append(feature_stats.name)
+            y.append(feature_stats.importance)
         x_pos = [i for i, _ in enumerate(x)]
         plt.barh(x_pos, y, color='green')
-        plt.ylabel("Feature")
+        plt.ylabel("Feature", fontsize=get_font_size(len(x)))
         plt.xlabel("Importance")
         plt.title("Features selected features in the fold: " + str(i))
         plt.yticks(x_pos, x)
-        plt.savefig(os.path.join(selector_path, 'fold_{}.png'.format(i)))
+        plt.savefig(os.path.join(selector_path, 'fold_{}.png'.format(i)), bbox_inches='tight')
+
+
+def get_font_size(rows):
+    if rows < 25:
+        return 15
+    else:
+        return 8
 
 
 pandarallel.initialize(progress_bar=False)
@@ -619,12 +645,13 @@ classifiers = [KNeighborsClassifier(n_neighbors=3)]
 for selector in fs_selectors:
     selector_name = selector.__class__.__name__
     report: SelectorReport = selectors_reports[selector_name]
-    features = list(map(lambda item: item[0], report.selected_features))
+    features = list(map(lambda item: item.name, report.selected_features))
     selector_path = os.path.join(results_path, selector_name)
     os.mkdir(selector_path)
 
     write_graphs(selector_path, report)
     write_pickles(selector_path, selector_name, df, features, labels, classifiers)
+    write_report(selector_path, report)
 
 # import requests
 #

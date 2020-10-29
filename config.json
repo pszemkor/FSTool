@@ -9,5 +9,5 @@
   ],
   "target": "SEX",
   "data_path": "/Users/przemyslawjablecki/FeatureSelection/data.txt",
-  "metric": "f1"
+  "metric": "f1-score"
 }
