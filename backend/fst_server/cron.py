@@ -1,13 +1,13 @@
-from time import sleep
-import datetime
-from fst_server.models import Job, HPCSettings, JobResult, Image
+import json
+import logging
+
 import requests
 from django.db.models import Q
-import json
-import sys
-import logging
 from fst_server.logger import get_logger
+from fst_server.models import Job, HPCSettings, FSResult, Image, Classifier
+
 logger = get_logger()
+
 
 def update_jobs():
     logger.info("Performing updates...")
@@ -61,17 +61,20 @@ def update_finished_job(current_job_id, status, user_settings):
             if not report_response.ok:
                 logger.error("Could not retrieve the report of the processing from the server")
                 return "FAILURE"
-            # save main report
             if filename == 'report.json':
                 report_string = str(json.loads(report_response.text.replace("\n", "")))
                 logger.info("Report: ", report_string)
-                job_result = JobResult.objects.create(job_id=current_job_id, response_json=report_string)
+                job_result = FSResult.objects.create(job_id=current_job_id, response_json=report_string)
             elif filename.endswith(".png"):
                 image_bytes = report_response.content
                 images.append(image_bytes)
+                logger.info("Saving image")
+            elif filename.endswith(".p"):
+                serialized_classifier = report_response.content
+                logger.info("Persisting trained model")
+                Classifier.objects.create(name=filename[:-2], cls_pickle=serialized_classifier)
 
             logging.debug('File response content:', report_response.content)
 
     [Image.objects.create(job_result=job_result, image_binary=i) for i in images]
-
     return status
