@@ -10,6 +10,6 @@ unset PYTHONPATH
 module load plgrid/tools/python/3.6.5
 source ~/python_env/bin/activate
 
-python hello.py {0} {1} {2}
+python fstool.py {0} {1} {2}
 
 exit 0
