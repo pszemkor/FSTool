@@ -8,7 +8,7 @@ import requests
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, JsonResponse
 from fst_server.logger import get_logger
-from fst_server.models import Classifier, HPCSettings, Job, JobResult, Image
+from fst_server.models import Classifier, HPCSettings, Job, FSResult, Image
 from rest_framework.decorators import api_view
 
 sys.path.append(os.path.abspath('../'))
@@ -114,11 +114,18 @@ def jobs(request):
 
 @api_view(['GET'])
 def job_result(request, job_id):
-    job_result = JobResult.objects.get(pk=job_id)
-    result = json.loads(job_result.response_json.replace("'", "\""))
-    related_imgs = Image.objects.filter(job_result=job_id)
-    result["resultImgs"] = [{"image": im.id, "name": job_id} for im in related_imgs]
-    return JsonResponse(result)
+    fs_results = FSResult.objects.get(job_id=job_id)
+    job_results = []
+    for fs_result in fs_results:
+        result_dict = dict()
+        json_report = json.loads(fs_result.response_json.replace("'", "\""))
+        related_imgs = Image.objects.filter(job_result=job_id)
+
+        result_dict['report'] = json_report
+        result_dict["resultImgs"] = [{"image": im.id, "name": job_id} for im in related_imgs]
+        job_results.append(result_dict)
+
+    return JsonResponse(job_results)
 
 
 @api_view(['GET'])
