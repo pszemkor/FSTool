@@ -114,7 +114,7 @@ def jobs(request):
 
 @api_view(['GET'])
 def job_result(request, job_id):
-    fs_results: List[FSResult] = FSResult.objects.get(job_id=job_id)
+    fs_results = FSResult.objects.filter(job_id=job_id)
     job_results = []
     for fs_result in fs_results:
         result_dict = dict()
