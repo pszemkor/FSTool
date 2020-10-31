@@ -29,9 +29,9 @@ class Job(models.Model):
 
 @auto_str
 class FSResult(models.Model):
-    job_id = models.CharField(primary_key=True, max_length=200, null=False)
     algo_name = models.CharField(max_length=100, null=False)
     response_json = models.TextField(null=False)
+    job_id = models.CharField(max_length=200, null=False)
 
 
 @auto_str
