@@ -149,7 +149,7 @@ def upload_configuration(data, data_path, user_settings, workdir):
     params = {}
     params['k'] = 10
     params['case'] = 'F'
-    params['algorithms'] = [data['algoType']]
+    params['algorithms'] = data['algorithms']
     params['classifiers'] = []
     params['target'] = data['target']
     params['data_path'] = data_path

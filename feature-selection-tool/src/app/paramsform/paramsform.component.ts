@@ -16,7 +16,7 @@ export class ParamsformComponent implements OnInit {
     fs_rf: false,
     fs_it: false,
     fs_kendall: false,
-    fs_pearson: false
+    fs_pearson: false,
     fs_rmcsf: false,
     fs_skbest: false,
     fs_lasso: false,

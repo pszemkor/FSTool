@@ -10,7 +10,7 @@ import base64
 import json
 import os
 import sys
-from typing import List, Tuple, Dict
+from typing import List, Dict
 import matplotlib.pyplot as plt
 from io import StringIO
 from sklearn.ensemble import RandomForestClassifier

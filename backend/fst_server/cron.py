@@ -28,7 +28,11 @@ def update_jobs():
         logging.debug(response_content)
         status = response_content['status']
         if status == "FINISHED":
-            status = update_finished_job(current_job_id, status, user_settings)
+            try:
+                status = update_finished_job(current_job_id, status, user_settings)
+            except Exception as e:
+                logger.error(e)
+                status = "FAILURE"
 
         Job.objects.filter(pk=current_job_id).update(status=status)
 
@@ -43,38 +47,54 @@ def update_finished_job(current_job_id, status, user_settings):
     results_path = 'https://data.plgrid.pl/list/prometheus/net/scratch/people/{}/{}/'.format(
         user_settings.user_name, dir_name)
     header_with_proxy = {"PROXY": user_settings.proxy_certificate}
-    files_list_response = requests.get(results_path, headers=header_with_proxy)
-    logging.debug('files:', files_list_response)
-    if not files_list_response.ok:
-        logger.error("Could not retrieve results from the server")
-        return "FAILURE"
-
-    files = files_list_response.json()
     job_result = None
-    images = []
-    for file in files:
-        if not file['is_dir']:
-            filename: str = file['name']
-            logger.debug("File:", filename)
-            report_response = requests.get(results_path.replace("/list/", "/download/") + filename,
-                                           headers=header_with_proxy)
-            if not report_response.ok:
-                logger.error("Could not retrieve the report of the processing from the server")
-                return "FAILURE"
-            if filename == 'report.json':
-                report_string = str(json.loads(report_response.text.replace("\n", "")))
-                logger.info("Report: ", report_string)
-                job_result = FSResult.objects.create(job_id=current_job_id, response_json=report_string)
-            elif filename.endswith(".png"):
-                image_bytes = report_response.content
-                images.append(image_bytes)
-                logger.info("Saving image")
-            elif filename.endswith(".p"):
-                serialized_classifier = report_response.content
-                logger.info("Persisting trained model")
-                Classifier.objects.create(name=filename[:-2], cls_pickle=serialized_classifier)
 
-            logging.debug('File response content:', report_response.content)
+    directories = get_directories_list(results_path, header_with_proxy)
+    for dir in directories:
+        if dir['is_dir']:
+            images = []
+            selector_name = dir['name']
+            dir_path = results_path + "/" + selector_name + "/"
+            selector_results = get_directories_list(dir_path, header_with_proxy)
+            for file in selector_results:
+                if not file['is_dir']:
+                    job_result = handle_result_file(dir_path, file, header_with_proxy, current_job_id, images)
+            [Image.objects.create(job_result=job_result, image_binary=i) for i in images]
 
-    [Image.objects.create(job_result=job_result, image_binary=i) for i in images]
     return status
+
+
+def get_directories_list(path, headers):
+    logger.info("Listing directory:", path)
+    dir_list = requests.get(path, headers=headers)
+    logger.debug('Files:', dir_list)
+    if not dir_list.ok:
+        raise Exception("Could not retrieve results from the server")
+    return dir_list.json()
+
+
+def handle_result_file(dir_path, file, headers, current_job_id, images):
+    filename: str = file['name']
+    logger.debug("File:", filename)
+    report_response = requests.get(dir_path.replace("/list/", "/download/") + filename,
+                                   headers=headers)
+    job_result = None
+    if not report_response.ok:
+        raise Exception("Could not retrieve the report of the processing from the server")
+    if filename == 'report.json':
+        report_string = str(json.loads(report_response.text.replace("\n", "")))
+        logger.info("Report: ", report_string)
+        job_result = FSResult.objects.create(job_id=current_job_id, response_json=report_string)
+    elif filename.endswith(".png"):
+        image_bytes = report_response.content
+        images.append(image_bytes)
+        logger.info("Saving image")
+    elif filename.endswith(".p"):
+        serialized_classifier = report_response.content
+        logger.info("Persisting trained model")
+        Classifier.objects.create(name=filename[:-2], cls_pickle=serialized_classifier)
+
+    logger.debug('File response content:', report_response.content)
+    if job_result is None:
+        raise Exception("Job result does not contain report.json")
+    return job_result
