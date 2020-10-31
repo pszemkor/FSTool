@@ -30,6 +30,7 @@ class Job(models.Model):
 @auto_str
 class FSResult(models.Model):
     job_id = models.CharField(primary_key=True, max_length=200, null=False)
+    algo_name = models.CharField(max_length=100, null=False)
     response_json = models.TextField(null=False)
 
 
@@ -44,6 +45,7 @@ class Classifier(models.Model):
     details = models.CharField(max_length=300, default="")
     creation_timestamp = models.DateTimeField(auto_now_add=True)
     cls_pickle = models.BinaryField()
+    fs_result = models.ForeignKey(FSResult, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name

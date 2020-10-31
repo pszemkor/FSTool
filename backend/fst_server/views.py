@@ -3,7 +3,7 @@ import os
 import sys
 import tempfile
 from datetime import datetime
-
+from typing import List
 import requests
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, JsonResponse
@@ -114,7 +114,7 @@ def jobs(request):
 
 @api_view(['GET'])
 def job_result(request, job_id):
-    fs_results = FSResult.objects.get(job_id=job_id)
+    fs_results: List[FSResult] = FSResult.objects.get(job_id=job_id)
     job_results = []
     for fs_result in fs_results:
         result_dict = dict()
@@ -122,7 +122,9 @@ def job_result(request, job_id):
         related_imgs = Image.objects.filter(job_result=job_id)
 
         result_dict['report'] = json_report
+        result_dict['algoName'] = fs_result.algo_name
         result_dict["resultImgs"] = [{"image": im.id, "name": job_id} for im in related_imgs]
+
         job_results.append(result_dict)
 
     return JsonResponse(job_results)

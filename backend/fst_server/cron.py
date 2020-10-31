@@ -47,7 +47,7 @@ def update_finished_job(current_job_id, status, user_settings):
     results_path = 'https://data.plgrid.pl/list/prometheus/net/scratch/people/{}/{}/'.format(
         user_settings.user_name, dir_name)
     header_with_proxy = {"PROXY": user_settings.proxy_certificate}
-    job_result = None
+    fs_result = None
 
     directories = get_directories_list(results_path, header_with_proxy)
     logger.info("Directories: " + str(directories))
@@ -55,16 +55,19 @@ def update_finished_job(current_job_id, status, user_settings):
         selector_name = dir['name']
         if dir['is_dir'] and selector_name not in {".", ".."}:
             images = []
+            classifiers = []
             logger.debug("Selector name: " + str(selector_name))
             dir_path = results_path + selector_name + "/"
             selector_results = get_directories_list(dir_path, header_with_proxy)
             for file in selector_results:
                 if not file['is_dir']:
-                    handle_result_file(dir_path, file, header_with_proxy, current_job_id, images)
-            job_result = FSResult.objects.filter(job_id=current_job_id).first()
-            if job_result is None:
+                    handle_result_file(dir_path, file['name'], header_with_proxy, current_job_id, images, classifiers,
+                                       selector_name)
+            fs_result = FSResult.objects.filter(job_id=current_job_id).first()
+            if fs_result is None:
                 raise Exception("Job result does not contain report.json")
-            [Image.objects.create(fs_result=job_result, image_binary=i) for i in images]
+            [Classifier.objects.create(name=name, cls_pickle=p, fs_result=fs_result) for name, p in classifiers]
+            [Image.objects.create(fs_result=fs_result, image_binary=i) for i in images]
 
     return status
 
@@ -79,18 +82,16 @@ def get_directories_list(path, headers):
     return dir_list_json
 
 
-def handle_result_file(dir_path, file, headers, current_job_id, images):
-    filename: str = file['name']
+def handle_result_file(dir_path, filename, headers, current_job_id, images, classifiers, selector_name):
     file_path = dir_path.replace("/list/", "/download/") + filename
-    report_response = requests.get(file_path,
-                                   headers=headers)
+    report_response = requests.get(file_path, headers=headers)
     logger.debug("File:" + file_path)
     if not report_response.ok:
         raise Exception("Could not retrieve a file from the server")
     if filename == 'report.json':
         report_string = str(json.loads(report_response.text.replace("\n", "")))
         logger.info("Report: " + report_string)
-        FSResult.objects.create(job_id=current_job_id, response_json=report_string)
+        FSResult.objects.create(job_id=current_job_id, response_json=report_string, algo_name=selector_name)
     elif filename.endswith(".png"):
         image_bytes = report_response.content
         images.append(image_bytes)
@@ -98,4 +99,4 @@ def handle_result_file(dir_path, file, headers, current_job_id, images):
     elif filename.endswith(".p"):
         serialized_classifier = report_response.content
         logger.info("Persisting trained model")
-        Classifier.objects.create(name=filename[:-2], cls_pickle=serialized_classifier)
+        classifiers.append((filename[:-2], serialized_classifier))
