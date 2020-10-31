@@ -50,41 +50,47 @@ def update_finished_job(current_job_id, status, user_settings):
     job_result = None
 
     directories = get_directories_list(results_path, header_with_proxy)
+    logger.info("Directories: " + str(directories))
     for dir in directories:
-        if dir['is_dir']:
+        selector_name = dir['name']
+        if dir['is_dir'] and selector_name not in {".", ".."}:
             images = []
-            selector_name = dir['name']
-            dir_path = results_path + "/" + selector_name + "/"
+            logger.debug("Selector name: " + str(selector_name))
+            dir_path = results_path + selector_name + "/"
             selector_results = get_directories_list(dir_path, header_with_proxy)
             for file in selector_results:
                 if not file['is_dir']:
-                    job_result = handle_result_file(dir_path, file, header_with_proxy, current_job_id, images)
-            [Image.objects.create(job_result=job_result, image_binary=i) for i in images]
+                    handle_result_file(dir_path, file, header_with_proxy, current_job_id, images)
+            job_result = FSResult.objects.filter(job_id=current_job_id).first()
+            if job_result is None:
+                raise Exception("Job result does not contain report.json")
+            [Image.objects.create(fs_result=job_result, image_binary=i) for i in images]
 
     return status
 
 
 def get_directories_list(path, headers):
-    logger.info("Listing directory:", path)
+    logger.info("Listing directory: " + path)
     dir_list = requests.get(path, headers=headers)
-    logger.debug('Files:', dir_list)
     if not dir_list.ok:
         raise Exception("Could not retrieve results from the server")
-    return dir_list.json()
+    dir_list_json = dir_list.json()
+    logger.debug('Files:' + str(dir_list_json))
+    return dir_list_json
 
 
 def handle_result_file(dir_path, file, headers, current_job_id, images):
     filename: str = file['name']
-    logger.debug("File:", filename)
-    report_response = requests.get(dir_path.replace("/list/", "/download/") + filename,
+    file_path = dir_path.replace("/list/", "/download/") + filename
+    report_response = requests.get(file_path,
                                    headers=headers)
-    job_result = None
+    logger.debug("File:" + file_path)
     if not report_response.ok:
-        raise Exception("Could not retrieve the report of the processing from the server")
+        raise Exception("Could not retrieve a file from the server")
     if filename == 'report.json':
         report_string = str(json.loads(report_response.text.replace("\n", "")))
-        logger.info("Report: ", report_string)
-        job_result = FSResult.objects.create(job_id=current_job_id, response_json=report_string)
+        logger.info("Report: " + report_string)
+        FSResult.objects.create(job_id=current_job_id, response_json=report_string)
     elif filename.endswith(".png"):
         image_bytes = report_response.content
         images.append(image_bytes)
@@ -93,8 +99,3 @@ def handle_result_file(dir_path, file, headers, current_job_id, images):
         serialized_classifier = report_response.content
         logger.info("Persisting trained model")
         Classifier.objects.create(name=filename[:-2], cls_pickle=serialized_classifier)
-
-    logger.debug('File response content:', report_response.content)
-    if job_result is None:
-        raise Exception("Job result does not contain report.json")
-    return job_result

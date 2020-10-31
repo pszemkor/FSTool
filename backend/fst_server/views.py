@@ -153,6 +153,7 @@ def upload_configuration(data, data_path, user_settings, workdir):
     params['classifiers'] = []
     params['target'] = data['target']
     params['data_path'] = data_path
+    params['metric'] = 'f1-score'
     fd, filename = tempfile.mkstemp()
     content = json.dumps(params)
     return create_and_upload(content, fd, filename, user_settings, workdir)
