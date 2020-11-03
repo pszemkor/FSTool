@@ -256,6 +256,7 @@ class MCFSSelector(FeatureSelector):
         pass
 
     def fit(self, X_train, y_train, subset_no):
+        r('install.packages("rmcfs", repos="https://cloud.r-project.org/")')
         r.library("rmcfs")
         r.library("dplyr")
 
@@ -267,7 +268,7 @@ class MCFSSelector(FeatureSelector):
             r_from_pd_df = ro.conversion.py2rpy(X_train)
 
         r.assign('df1', r_from_pd_df)
-        r('result <- mcfs(PATIENT ~ ., df1, cutoffPermutations = 30, seed = 2, threadsNumber = 16)')
+        r('result <- mcfs({} ~ ., df1, cutoffPermutations = 30, seed = 2, threadsNumber = 16)'.format(TARGET))
         r('RI <- result$RI')
         result = r['result']
         ri = r['RI']
@@ -283,6 +284,7 @@ class MCFSSelector(FeatureSelector):
         del X_train[TARGET]
         X_train.columns = original_features
         self.features_importances = [features_to_ri['f' + str(i + 1)] for i in range(0, len(original_features))]
+        print("RMCFS:FEATURE:IMPORTANCES", self.features_importances)
 
 
 class ITSelector(FeatureSelector):
@@ -434,6 +436,7 @@ class CVEvaluator:
         features_name = [name for name, i in selected_features]
         X_train, X_test = X_train[features_name], X_test[features_name]
         metric_vals = []
+        print('classifiers:', self.clfs)
         for clf in self.clfs:
             clf.fit(X_train, y_train)
             y_predicted = clf.predict(X_test)
@@ -441,6 +444,7 @@ class CVEvaluator:
             fold_report.add_classification_report(str(clf).upper(), report)
             metric_val = report['weighted avg'][self.config.metric]
             metric_vals.append(metric_val)
+        print('metric_vals', metric_vals)
         avg_metric = sum(metric_vals) / len(metric_vals)
         N = len(selected_features)
         features_rank = {}

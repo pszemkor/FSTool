@@ -31,7 +31,7 @@ export class ClassificationMetrics {
 
 export class ClassifierReport {
  classifier_name: string;
- class_metrics: Map<string, ClassificationMetrics>;
+ class_metrics: ClassificationMetrics[];
  accuracy: number;
  macro_avg: ClassificationMetrics;
  weighted_avg: ClassificationMetrics;

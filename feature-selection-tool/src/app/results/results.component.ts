@@ -30,22 +30,21 @@ export class ResultsComponent implements OnInit {
         fReport.classifier_reports.push(this.parseJSONReport(key, fReport.reports[key]));
       }
     }
-
-
   }
 
   parseJSONReport(classifierName: string, jsonReport: any): ClassifierReport {
     const finalReport = new ClassifierReport();
     finalReport.classifier_name = classifierName;
-    finalReport.accuracy = jsonReport.accuracy;
+    finalReport.accuracy = Math.round(jsonReport.accuracy * 100) / 100;
     delete jsonReport.accuracy;
     finalReport.macro_avg = this.parseMetrics('Macro average', jsonReport['macro avg']);
     delete jsonReport['macro avg'];
     finalReport.weighted_avg = this.parseMetrics('Weighted average', jsonReport['weighted avg']);
     delete jsonReport['weighted avg'];
-    finalReport.class_metrics = new Map<string, ClassificationMetrics>();
+
+    finalReport.class_metrics = [];
     for (const cat in jsonReport){
-      finalReport.class_metrics.set(cat, this.parseMetrics(cat, jsonReport[cat]));
+      finalReport.class_metrics.push(this.parseMetrics(cat, jsonReport[cat]));
       delete jsonReport[cat];
     }
     return finalReport;

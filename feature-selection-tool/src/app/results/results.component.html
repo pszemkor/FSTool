@@ -60,7 +60,7 @@
               </mat-card-title>
               <mat-card-content>
                 <table mat-table [dataSource]="[classifierReport.weighted_avg, classifierReport.macro_avg]"
-                       class="mat-elevation-z8">
+                       class="mat-elevation-z8" fxLayoutGap="10px">
                   <ng-container matColumnDef="kind">
                     <th mat-header-cell *matHeaderCellDef>Kind</th>
                     <td mat-cell *matCellDef="let report"> {{report.kind}} </td>
@@ -85,6 +85,34 @@
                   <tr mat-row *matRowDef="let myRowData; columns: columnsToDisplayClf"></tr>
                 </table>
 
+
+                <table mat-table [dataSource]="classifierReport.class_metrics" class="mat-elevation-z8"
+                       fxLayoutGap="10px">
+                  <ng-container matColumnDef="kind">
+                    <th mat-header-cell *matHeaderCellDef>Target class</th>
+                    <td mat-cell *matCellDef="let report"> {{report.kind}} </td>
+                  </ng-container>
+                  <ng-container matColumnDef="f1-score">
+                    <th mat-header-cell *matHeaderCellDef>F1-score</th>
+                    <td mat-cell *matCellDef="let report"> {{report.f1_score}} </td>
+                  </ng-container>
+                  <ng-container matColumnDef="precision">
+                    <th mat-header-cell *matHeaderCellDef>Precision</th>
+                    <td mat-cell *matCellDef="let report"> {{report.precision}} </td>
+                  </ng-container>
+                  <ng-container matColumnDef="recall">
+                    <th mat-header-cell *matHeaderCellDef>Recall</th>
+                    <td mat-cell *matCellDef="let report"> {{report.recall}} </td>
+                  </ng-container>
+                  <ng-container matColumnDef="support">
+                    <th mat-header-cell *matHeaderCellDef>Support</th>
+                    <td mat-cell *matCellDef="let report"> {{report.support}} </td>
+                  </ng-container>
+                  <tr mat-header-row *matHeaderRowDef="columnsToDisplayClf"></tr>
+                  <tr mat-row *matRowDef="let myRowData; columns: columnsToDisplayClf"></tr>
+                </table>
+
+                <h3><br>Accuracy: {{ classifierReport.accuracy }}</h3>
               </mat-card-content>
             </mat-card>
           </div>
