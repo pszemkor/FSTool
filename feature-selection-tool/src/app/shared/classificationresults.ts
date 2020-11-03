@@ -1,10 +1,10 @@
-export class ClassificationResults{
-    classifier: string;
-    results: SingleResult[];
+export class ClassificationResults {
+  classifier: string;
+  results: SingleResult[];
 }
 
-
-export class SingleResult{
-    id: string;
-    prediction: string;
+export class SingleResult {
+  id: string;
+  prediction: string;
+  probability: number;
 }

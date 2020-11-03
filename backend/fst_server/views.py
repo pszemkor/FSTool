@@ -9,6 +9,7 @@ from django.forms.models import model_to_dict
 from django.http import HttpResponse, JsonResponse
 from fst_server.logger import get_logger
 from fst_server.models import Classifier, HPCSettings, Job, FSResult, Image
+from fst_server.classify import ModelEvaluator
 from rest_framework.decorators import api_view
 
 sys.path.append(os.path.abspath('../'))
@@ -29,6 +30,8 @@ def fs_request(request):
 
     user_settings = settings[0]
     workdir = '/net/scratch/people/{}'.format(user_settings.user_name)
+    logger.info(prefix + "Uploading FS script")
+    upload_fs_script(user_settings, workdir)
 
     logger.info(prefix + "Uploading data")
     name_of_file = upload_csv(data, user_settings, workdir)
@@ -71,18 +74,14 @@ def get_models(request):
     return JsonResponse({'models': models})
 
 
-@api_view(['GET', 'POST'])
+@api_view(['POST'])
 def classify(request):
-    return JsonResponse({"unsupported": "unsupported"})
-    # if request.method == "POST":
-    #     modelID = request.data['modelID']
-    #     evaluator = ModelEvaluator(request.data)
-    #     evaluation_results = evaluator.execute()
-    #     to_json = {
-    #         'classifier': Classifier.objects.get(id=modelID).name,
-    #         'results': evaluation_results
-    #     }
-    #     return JsonResponse(to_json)
+    modelID = request.data['modelID']
+    model = Classifier.objects.get(pk=modelID)
+    evaluator = ModelEvaluator(model.cls_pickle)
+    prediction_results = evaluator.predict(request.data['csvBase64'])
+
+    return JsonResponse({"classifier": model.name, "results": prediction_results})
 
 
 @api_view(['POST', 'GET'])
@@ -135,6 +134,11 @@ def images(request, image_id):
     return HttpResponse(Image.objects.get(pk=image_id).image_binary, 'image/png')
 
 
+def upload_fs_script(user_settings, workdir):
+    print(os.getcwd())
+    upload_file("fstool.py", user_settings, workdir)
+
+
 def upload_slurm_script(configuration_file, request):
     with open('execution/script.slurm') as f:
         script = f.read().format('${SCRATCH}', '${SLURM_JOBID}', configuration_file)
@@ -166,15 +170,20 @@ def create_and_upload(content, fd, filename, user_settings, workdir):
         with os.fdopen(fd, 'w') as tmp:
             tmp.write(content)
 
-        with open(filename) as tmp:
-            path = 'https://data.plgrid.pl/upload/prometheus' + workdir + '/'
-            name_of_file = tmp.name
-            file_upload_response = requests.post(path, files=dict(file=tmp),
-                                                 headers={"PROXY": user_settings.proxy_certificate})
-            if not file_upload_response.ok:
-                logger.error(file_upload_response.reason)
-                raise ConnectionError('Cannot upload file')
+        name_of_file = upload_file(filename, user_settings, workdir)
     finally:
         os.remove(filename)
 
     return os.path.basename(name_of_file)
+
+
+def upload_file(filename, user_settings, workdir):
+    with open(filename) as tmp:
+        path = 'https://data.plgrid.pl/upload/prometheus' + workdir + '/'
+        name_of_file = tmp.name
+        file_upload_response = requests.post(path, files=dict(file=tmp),
+                                             headers={"PROXY": user_settings.proxy_certificate})
+        if not file_upload_response.ok:
+            logger.error(file_upload_response.reason)
+            raise ConnectionError('Cannot upload file')
+    return name_of_file
