@@ -576,6 +576,7 @@ def write_pickles(selector_path: str, selector_name: str, df: pd.DataFrame, feat
                   classifiers: list):
     for cls in classifiers:
         cls.fit(df[features], labels)
+        cls.selected_features = features
         pickle.dump(cls,
                     open(os.path.join(selector_path, "{}-{}.p".format(selector_name, cls.__class__.__name__)), "wb"))
 
@@ -650,5 +651,3 @@ for selector in fs_selectors:
     write_graphs(selector_path, report)
     write_pickles(selector_path, selector_name, df, features, labels, classifiers)
     write_report(selector_path, report)
-
-
