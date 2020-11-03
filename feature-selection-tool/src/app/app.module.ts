@@ -34,6 +34,7 @@ import {JobsComponent} from './jobs/jobs.component';
 import {MatGridListModule} from '@angular/material/grid-list';
 import {HPCSettingsFormComponent} from './hpc-settings-form/hpc-settings-form.component';
 import {MatInputModule} from '@angular/material/input';
+import { AlgorithmSelectionComponent } from './algorithm-selection/algorithm-selection.component';
 
 
 @NgModule({
@@ -49,7 +50,8 @@ import {MatInputModule} from '@angular/material/input';
     ModelsformComponent,
     HPCSettingsComponent,
     JobsComponent,
-    HPCSettingsFormComponent
+    HPCSettingsFormComponent,
+    AlgorithmSelectionComponent
   ],
   imports: [
     BrowserModule,

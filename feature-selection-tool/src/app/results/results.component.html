@@ -1,63 +1,96 @@
 <div class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign.gt-md="space-around center">
-  <div fxFlex="40" *ngIf="results">
-    <mat-card class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign.gt-md="space-around center">
+  <div fxFlex="40" *ngIf="result">
+
+    <mat-card class="container" fxLayout="column" fxLayoutGap="10px" *ngIf="result.algoName">
+      <mat-card-title>
+        <h1 style="text-align:center"><b>{{result.algoName}}</b></h1>
+      </mat-card-title>
+    </mat-card>
+
+    <mat-card class="container" fxLayout="column" fxLayoutGap="10px" *ngIf="result.report.selected_features">
+      <mat-card-title>
+        <h2>Final features rank</h2>
+      </mat-card-title>
       <mat-card-content>
-        <h1>Feature selection algorithm: {{ results.algoName }}</h1>
+        <table mat-table [dataSource]="result.report.selected_features" class="mat-elevation-z8">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef> Name</th>
+            <td mat-cell *matCellDef="let feature"> {{feature.name}} </td>
+          </ng-container>
+          <ng-container matColumnDef="score">
+            <th mat-header-cell *matHeaderCellDef> Score</th>
+            <td mat-cell *matCellDef="let feature"> {{feature.importance}} </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="columnsToDisplayFeatures"></tr>
+          <tr mat-row *matRowDef="let myRowData; columns: columnsToDisplayFeatures"></tr>
+        </table>
       </mat-card-content>
     </mat-card>
-    <div *ngFor="let resultImg of results.resultImgs" fxLayout="column" fxLayoutGap="10px">
-      <mat-card>
-<!--        <mat-card-title>-->
-          <p> {{ resultImg.name }}</p>
-<!--        </mat-card-title>-->
-        <img mat-card-image src='{{baseUrl}}images/{{resultImg.image}}'  alt={{resultImg.image}}>
+
+    <div *ngFor="let resultImg of result.resultImgs" fxLayout="column" fxLayoutGap="10px">
+      <mat-card class="container" fxLayout="column" fxLayoutGap="10px">
+        <img mat-card-image src='{{baseUrl}}images/{{resultImg.image}}' alt={{resultImg.image}}>
       </mat-card>
     </div>
-    <mat-card class="container" fxLayout="column" fxLayoutGap="10px" *ngIf="results.featuresRank">
-      <mat-card-title>
-        <h2>Features rank</h2>
-      </mat-card-title>
-      <table mat-table [dataSource]="results.featuresRank" class="mat-elevation-z8">
-        <ng-container matColumnDef="index">
-          <th mat-header-cell *matHeaderCellDef> Index</th>
-          <td mat-cell *matCellDef="let feature"> {{feature.index}} </td>
-        </ng-container>
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef> Name</th>
-          <td mat-cell *matCellDef="let feature"> {{feature.name}} </td>
-        </ng-container>
-        <ng-container matColumnDef="score">
-          <th mat-header-cell *matHeaderCellDef> Score</th>
-          <td mat-cell *matCellDef="let feature"> {{feature.score}} </td>
-        </ng-container>
-        <tr mat-header-row *matHeaderRowDef="columnsToDisplayFeatures"></tr>
-        <tr mat-row *matRowDef="let myRowData; columns: columnsToDisplayFeatures"></tr>
-      </table>
-    </mat-card>
-    <mat-card class="container" fxLayout="column" fxLayoutGap="10px" *ngIf="results.classificationResults">
-      <mat-card-title>
-        <h2>Classification results</h2>
-      </mat-card-title>
-      <table mat-table [dataSource]="results.classificationResults" class="mat-elevation-z8">
-        <ng-container matColumnDef="classifier">
-          <th mat-header-cell *matHeaderCellDef> Classifier</th>
-          <td mat-cell *matCellDef="let clf"> {{clf.clfName}} </td>
-        </ng-container>
-        <ng-container matColumnDef="accuracy">
-          <th mat-header-cell *matHeaderCellDef> Accuracy</th>
-          <td mat-cell *matCellDef="let clf"> {{clf.accuracy}} %</td>
-        </ng-container>
-        <ng-container matColumnDef="f1">
-          <th mat-header-cell *matHeaderCellDef> F1</th>
-          <td mat-cell *matCellDef="let clf"> {{clf.f1}} %</td>
-        </ng-container>
-        <ng-container matColumnDef="recall">
-          <th mat-header-cell *matHeaderCellDef> Recall</th>
-          <td mat-cell *matCellDef="let clf"> {{clf.recall}} %</td>
-        </ng-container>
-        <tr mat-header-row *matHeaderRowDef="columnsToDisplayClf"></tr>
-        <tr mat-row *matRowDef="let myRowData; columns: columnsToDisplayClf"></tr>
-      </table>
-    </mat-card>
+
+    <div *ngFor="let foldReport of result.report.fold_reports" fxLayout="column" fxLayoutGap="10px">
+      <mat-card class="container" fxLayout="column" fxLayoutGap="10px">
+        <mat-card-header>
+          <h2> Report for fold</h2>
+        </mat-card-header>
+        <mat-card-content>
+          <table mat-table [dataSource]="foldReport.features_importances" class="mat-elevation-z8">
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef> Name</th>
+              <td mat-cell *matCellDef="let feature"> {{feature.name}} </td>
+            </ng-container>
+            <ng-container matColumnDef="score">
+              <th mat-header-cell *matHeaderCellDef> Score</th>
+              <td mat-cell *matCellDef="let feature"> {{feature.importance}} </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="columnsToDisplayFeatures"></tr>
+            <tr mat-row *matRowDef="let myRowData; columns: columnsToDisplayFeatures"></tr>
+          </table>
+
+
+          <div *ngFor="let classifierReport of foldReport.classifier_reports" fxLayout="column" fxLayoutGap="10px">
+            <mat-card class="container" fxLayout="column" fxLayoutGap="10px">
+              <mat-card-title>
+                <h3><b>{{ classifierReport.classifier_name }}</b></h3>
+              </mat-card-title>
+              <mat-card-content>
+                <table mat-table [dataSource]="[classifierReport.weighted_avg, classifierReport.macro_avg]"
+                       class="mat-elevation-z8">
+                  <ng-container matColumnDef="kind">
+                    <th mat-header-cell *matHeaderCellDef>Kind</th>
+                    <td mat-cell *matCellDef="let report"> {{report.kind}} </td>
+                  </ng-container>
+                  <ng-container matColumnDef="f1-score">
+                    <th mat-header-cell *matHeaderCellDef>F1-score</th>
+                    <td mat-cell *matCellDef="let report"> {{report.f1_score}} </td>
+                  </ng-container>
+                  <ng-container matColumnDef="precision">
+                    <th mat-header-cell *matHeaderCellDef>Precision</th>
+                    <td mat-cell *matCellDef="let report"> {{report.precision}} </td>
+                  </ng-container>
+                  <ng-container matColumnDef="recall">
+                    <th mat-header-cell *matHeaderCellDef>Recall</th>
+                    <td mat-cell *matCellDef="let report"> {{report.recall}} </td>
+                  </ng-container>
+                  <ng-container matColumnDef="support">
+                    <th mat-header-cell *matHeaderCellDef>Support</th>
+                    <td mat-cell *matCellDef="let report"> {{report.support}} </td>
+                  </ng-container>
+                  <tr mat-header-row *matHeaderRowDef="columnsToDisplayClf"></tr>
+                  <tr mat-row *matRowDef="let myRowData; columns: columnsToDisplayClf"></tr>
+                </table>
+
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
   </div>
 </div>
+

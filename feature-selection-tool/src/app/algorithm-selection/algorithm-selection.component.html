@@ -1,0 +1,28 @@
+<div class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign="space-around center">
+  <mat-card class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign="space-around center" fxFlex="30">
+    <mat-card-title>
+      <h1 style="text-align:center"><b>{{ jobId }}</b></h1>
+    </mat-card-title>
+  </mat-card>
+  <mat-card class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign="space-around center" fxFlex="30">
+    <mat-card-title>
+      <h2 style="text-align:center"> Feature selection algorithms</h2>
+    </mat-card-title>
+    <mat-card-content>
+      <mat-nav-list>
+        <mat-list-item *ngFor="let fsResult of jobResult.selectorsResults">
+          <a routerLink='{{fsResult.algoName}}' [state]="{ fsResult: fsResult}"
+             routerLinkActive='active' class="margin_class"> {{fsResult.algoName}} </a>
+        </mat-list-item>
+      </mat-nav-list>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign="space-around center" fxFlex="30">
+    <mat-card-content>
+      <a mat-button routerLink='../..' routerLinkActive='active' class="margin_class" appHighlight>
+        <mat-icon>keyboard_return</mat-icon>
+        All jobs</a>
+    </mat-card-content>
+  </mat-card>
+</div>

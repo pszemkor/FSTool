@@ -1,7 +1,5 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {FeatureSelectionResults} from '../shared/featureselectionresults';
-import {JobsService} from '../services/jobs.service';
-import {ActivatedRoute} from '@angular/router';
+import {Component, OnInit} from '@angular/core';
+import {ClassificationMetrics, ClassifierReport, FeatureSelectionResults} from '../shared/featureselectionresults';
 import {baseURL} from '../shared/baseurl';
 
 
@@ -12,22 +10,55 @@ import {baseURL} from '../shared/baseurl';
 })
 export class ResultsComponent implements OnInit {
 
-  @Input() results: FeatureSelectionResults;
-  columnsToDisplayFeatures = ['index', 'name', 'score'];
-  columnsToDisplayClf = ['classifier', 'accuracy', 'f1', 'recall'];
+  result: FeatureSelectionResults;
+  columnsToDisplayFeatures = ['name', 'score'];
+  columnsToDisplayClf = ['kind', 'f1-score', 'precision', 'recall', 'support'];
   baseUrl = baseURL;
 
-  constructor(private jobsService: JobsService, private route: ActivatedRoute) {
+  constructor() {
   }
 
   ngOnInit(): void {
-    if (this.results == null) {
-      this.route.paramMap.subscribe(m =>
-        this.jobsService.getJobResult(m.get('jobId')).subscribe(res => {
-          this.results = res;
-        }));
-    }
+    this.result = history.state.fsResult;
+    this.parseFoldReports();
   }
+
+  parseFoldReports(): void {
+    for (const fReport of this.result.report.fold_reports) {
+      fReport.classifier_reports = [];
+      for (const key in fReport.reports){
+        fReport.classifier_reports.push(this.parseJSONReport(key, fReport.reports[key]));
+      }
+    }
+
+
+  }
+
+  parseJSONReport(classifierName: string, jsonReport: any): ClassifierReport {
+    const finalReport = new ClassifierReport();
+    finalReport.classifier_name = classifierName;
+    finalReport.accuracy = jsonReport.accuracy;
+    delete jsonReport.accuracy;
+    finalReport.macro_avg = this.parseMetrics('Macro average', jsonReport['macro avg']);
+    delete jsonReport['macro avg'];
+    finalReport.weighted_avg = this.parseMetrics('Weighted average', jsonReport['weighted avg']);
+    delete jsonReport['weighted avg'];
+    finalReport.class_metrics = new Map<string, ClassificationMetrics>();
+    for (const cat in jsonReport){
+      finalReport.class_metrics.set(cat, this.parseMetrics(cat, jsonReport[cat]));
+      delete jsonReport[cat];
+    }
+    return finalReport;
+  }
+
+  parseMetrics(cat: string, jsonMetrics: any): ClassificationMetrics {
+    let metrics = new ClassificationMetrics();
+    metrics.f1_score = Math.round(jsonMetrics['f1-score'] * 100) / 100;
+    metrics.precision = Math.round(jsonMetrics.precision * 100) / 100;
+    metrics.recall = Math.round(jsonMetrics.recall * 100) / 100;
+    metrics.support = Math.round(jsonMetrics.support * 100) / 100;
+    metrics.kind = cat;
+    return metrics;
+  }
+
 }
-
-

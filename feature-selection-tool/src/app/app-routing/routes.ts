@@ -6,6 +6,7 @@ import {ModelsComponent} from '../models/models.component';
 import {HPCSettingsComponent} from '../hpc-settings/hpc-settings.component';
 import {JobsComponent} from '../jobs/jobs.component';
 import {ResultsComponent} from '../results/results.component';
+import {AlgorithmSelectionComponent} from '../algorithm-selection/algorithm-selection.component';
 
 export const routes: Routes = [
   {path: 'home', component: HomeComponent},
@@ -13,6 +14,7 @@ export const routes: Routes = [
   {path: 'models', component: ModelsComponent},
   {path: 'hpc-settings', component: HPCSettingsComponent},
   {path: 'jobs', component: JobsComponent},
-  {path: 'jobs/result/:jobId', component: ResultsComponent},
+  {path: 'jobs/result/:jobId', component: AlgorithmSelectionComponent},
+  {path: 'jobs/result/:jobId/:algoType', component: ResultsComponent},
   {path: '', redirectTo: '/home', pathMatch: 'full'},
 ];

@@ -118,15 +118,15 @@ def job_result(request, job_id):
     for fs_result in fs_results:
         result_dict = dict()
         json_report = json.loads(fs_result.response_json.replace("'", "\""))
-        related_imgs = Image.objects.filter(job_result=job_id)
+        related_imgs = Image.objects.filter(fs_result=fs_result.id)
 
         result_dict['report'] = json_report
         result_dict['algoName'] = fs_result.algo_name
         result_dict["resultImgs"] = [{"image": im.id, "name": job_id} for im in related_imgs]
 
         job_results.append(result_dict)
-
-    return JsonResponse(job_results)
+    print(job_results)
+    return JsonResponse(job_results, safe=False)
 
 
 @api_view(['GET'])

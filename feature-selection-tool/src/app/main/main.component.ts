@@ -11,7 +11,6 @@ import { FeatureSelectionResults } from '../shared/featureselectionresults';
 export class MainComponent implements OnInit {
 
   params: FeatureSelectionParameters;
-  results: FeatureSelectionResults;
   errorMessage: string;
   constructor(private featureSelectionService: FeatureSelectionService) { }
 
@@ -20,9 +19,8 @@ export class MainComponent implements OnInit {
 
   onSubmit(params: FeatureSelectionParameters): void {
     this.params = params;
-    this.results = null;
     this.featureSelectionService.postRequest(this.params)
-      .subscribe(response => { this.results = response; this.params = null; },
+      .subscribe(() => { this.params = null; },
         error => {this.errorMessage = error; this.params = null; });
   }
 

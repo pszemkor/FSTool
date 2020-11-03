@@ -4,7 +4,7 @@ import {ErrorMessageProcessorService} from './error-message-processor.service';
 import {Job} from '../shared/job';
 import {baseURL} from '../shared/baseurl';
 import {catchError} from 'rxjs/operators';
-import {FeatureSelectionResults} from "../shared/featureselectionresults";
+import {FeatureSelectionResults, JobResult} from '../shared/featureselectionresults';
 
 @Injectable({
   providedIn: 'root'
@@ -20,9 +20,7 @@ export class JobsService {
   }
 
   getJobResult(jobId: string) {
-    return this.http.get<FeatureSelectionResults>(baseURL + 'jobs/result/' + jobId)
+    return this.http.get<FeatureSelectionResults[]>(baseURL + 'jobs/result/' + jobId)
       .pipe(catchError(this.errorProcessor.handleError));
   }
-
-
 }
