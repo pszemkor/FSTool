@@ -7,6 +7,7 @@ import numpy as np
 import base64
 import json
 import os
+import sys
 import seaborn as sns
 from typing import List, Dict
 import matplotlib.pyplot as plt
@@ -533,6 +534,7 @@ def write_correlation_heatmap(selector_path, features, df):
     plt.subplots(figsize=(50, 50))
     sns.heatmap(cor, vmax=1.0, center=0, square=True, linewidths=.5, cbar_kws={"shrink": .70})
     plt.savefig(os.path.join(selector_path, 'correlation_heatmap.png'), bbox_inches='tight')
+    plt.clf()
 
 
 def write_pickles(selector_path: str, selector_name: str, df: pd.DataFrame, features: list, labels: list,
@@ -565,6 +567,7 @@ def write_graphs(selector_path: str, report: SelectorReport):
         plt.title("Features selected features in the fold: " + str(i))
         plt.yticks(x_pos, x)
         plt.savefig(os.path.join(selector_path, 'fold_{}.png'.format(i)), bbox_inches='tight')
+        plt.clf()
 
 
 def get_font_size(rows):
@@ -576,15 +579,11 @@ def get_font_size(rows):
 
 pandarallel.initialize(progress_bar=False)
 # READ ARGUMENTS
-# args = sys.argv
-# scratch_path = args[1]
-# job_id = args[2]
-# config_path = args[3]
-scratch_path = '/Users/przemyslawjablecki/FeatureSelection'
-import random
+args = sys.argv
+scratch_path = args[1]
+job_id = args[2]
+config_path = args[3]
 
-job_id = str(random.randint(1, 2000))
-config_path = '/Users/przemyslawjablecki/FeatureSelection/config.json'
 config = Configuration(config_path)
 results_path = os.path.join(scratch_path, job_id)
 os.mkdir(results_path)
@@ -606,14 +605,14 @@ available_selectors = {'rf': RandomForestSelector(),
                        'pearson': PearsonSelector()}
 
 available_classifiers = {'rf': RandomForestClassifier(n_estimators=300),
-                         'svm': SVC(),
+                         'svm': SVC(probability=True),
                          'knn': KNeighborsClassifier(n_neighbors=3),
                          'nn': MLPClassifier((k, 100, len(set(labels))))}
 
 fs_selectors = [available_selectors[algo] for algo in config.algorithms]
 fs_classifiers = [available_classifiers[clsf] for clsf in config.classifiers]
 fs_aggregator = FeatureSelectorsAggregator(fs_selectors)
-cv_evaluator = CVEvaluator(N_SPLITS, fs_aggregator, labels, df, KIND, [KNeighborsClassifier(n_neighbors=3)], config)
+cv_evaluator = CVEvaluator(N_SPLITS, fs_aggregator, labels, df, KIND, fs_classifiers, config)
 selectors_reports = cv_evaluator.perform_evaluation()
 
 for selector in fs_selectors:

@@ -14,7 +14,7 @@ def update_jobs():
     logger.info("Performing updates...")
     for queued_job in Job.objects.filter(Q(status="QUEUED") | Q(status="RUNNING")):
         current_job_id = queued_job.job_id
-        logger.info("Job Id:", current_job_id)
+        logger.info("Job Id: " + current_job_id)
         settings = HPCSettings.objects.all()
         if len(settings) != 1:
             logger.error("Missing proxy")
@@ -23,7 +23,7 @@ def update_jobs():
         header = {'Content-type': 'application/json', "PROXY": user_settings.proxy_certificate}
         response = requests.get('https://rimrock.plgrid.pl/api/jobs/' + current_job_id, headers=header)
         if not response.ok:
-            logger.error("{}: {}", current_job_id, response.reason)
+            logger.error("{}: {}".format(current_job_id, response.reason))
             continue
         response_content = response.json()
         logging.debug(response_content)
@@ -32,7 +32,7 @@ def update_jobs():
             try:
                 status = update_finished_job(current_job_id, status, user_settings)
             except Exception as e:
-                logger.error(e)
+                logger.error(str(e))
                 status = "FAILURE"
 
         Job.objects.filter(pk=current_job_id).update(status=status)
