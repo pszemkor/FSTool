@@ -21,7 +21,6 @@
             <a *ngIf="job.status == 'FINISHED'" mat-button routerLink='result/{{job.job_id}}' routerLinkActive='active'
                class="margin_class" appHighlight> Show results </a>
           </td>
-
         </ng-container>
         <tr mat-header-row *matHeaderRowDef="columnsToDisplayJobs"></tr>
         <tr mat-row *matRowDef="let row; columns: columnsToDisplayJobs" [ngClass]="{

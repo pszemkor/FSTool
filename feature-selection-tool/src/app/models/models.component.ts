@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { ClassificationParams } from '../shared/classificationparams';
-import { ModelsService } from '../services/models.service';
-import { ClassificationResults } from '../shared/classificationresults';
+import {Component, Input, OnInit} from '@angular/core';
+import {ClassificationParams} from '../shared/classificationparams';
+import {ModelsService} from '../services/models.service';
+import {ClassificationResults} from '../shared/classificationresults';
 
 @Component({
   selector: 'app-models',
@@ -12,8 +12,9 @@ export class ModelsComponent implements OnInit {
   params: ClassificationParams;
   results: ClassificationResults;
   errorMessage: string;
-
-  constructor(private modelService: ModelsService) { }
+  columnsToDisplay = ['id', 'prediction', 'probability'];
+  constructor(private modelService: ModelsService) {
+  }
 
   ngOnInit(): void {
   }
@@ -22,7 +23,14 @@ export class ModelsComponent implements OnInit {
     this.params = params;
     this.results = null;
     this.modelService.postRequest(this.params)
-      .subscribe(response => { this.results = response; this.params = null; },
-        error => {this.errorMessage = error; this.params = null;});
+      .subscribe(response => {
+          console.log(response);
+          this.results = response;
+          this.params = null;
+        },
+        error => {
+          this.errorMessage = error;
+          this.params = null;
+        });
   }
 }

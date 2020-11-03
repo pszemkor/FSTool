@@ -1,16 +1,38 @@
 <div class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign.gt-md="space-around center">
-    <app-modelsform (sendParams)="onSubmit($event)"></app-modelsform>
+  <app-modelsform (sendParams)="onSubmit($event)"></app-modelsform>
 
 
-    <div *ngIf="params" [fxShow]="params" class="container" fxLayout="column" fxLayoutAlign.gt-md="space-around center">
-        <mat-spinner></mat-spinner>
-        <h2>Loading results. . . Please wait</h2>
-    </div>
+  <div *ngIf="params" [fxShow]="params" class="container" fxLayout="column" fxLayoutAlign.gt-md="space-around center">
+    <mat-spinner></mat-spinner>
+    <h2>Loading results. . . Please wait</h2>
+  </div>
 
-    <div fxFlex *ngIf="errorMessage" class="error_color">
-        <h1>Error</h1>
-        <h2>{{errorMessage}}</h2>
-    </div>
+  <div fxFlex *ngIf="errorMessage" class="error_color">
+    <h1>Error</h1>
+    <h2>{{errorMessage}}</h2>
+  </div>
 
-    <app-classificationresult *ngIf="results" [fxShow]="results" [results]="results"></app-classificationresult>
+  <div fxFlex *ngIf="results" style="width: 30%">
+    <table fxFlex mat-table [dataSource]="results.results" class="mat-elevation-z8" style="text-align:center;">
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef style="text-align:center;"> No.</th>
+        <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="prediction">
+        <th mat-header-cell *matHeaderCellDef style="text-align:center;"> Prediction</th>
+        <td mat-cell *matCellDef="let element"> {{element.prediction}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="probability">
+        <th mat-header-cell *matHeaderCellDef style="text-align:center;">Probability</th>
+        <td mat-cell *matCellDef="let element"> {{element.probability}} </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columnsToDisplay"></tr>
+      <tr mat-row *matRowDef="let row; columns: columnsToDisplay;"></tr>
+    </table>
+  </div>
+
+  <!--    <app-classificationresult *ngIf="results" [fxShow]="results" [results]="results" style=></app-classificationresult>-->
 </div>

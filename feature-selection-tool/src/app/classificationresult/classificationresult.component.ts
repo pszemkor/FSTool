@@ -1,5 +1,5 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { ClassificationResults } from '../shared/classificationresults';
+import {Component, OnInit, Input} from '@angular/core';
+import {ClassificationResults} from '../shared/classificationresults';
 
 @Component({
   selector: 'app-classificationresult',
@@ -7,8 +7,11 @@ import { ClassificationResults } from '../shared/classificationresults';
   styleUrls: ['./classificationresult.component.scss']
 })
 export class ClassificationresultComponent implements OnInit {
-  @Input() results: ClassificationResults
-  constructor() { }
+  @Input() results: ClassificationResults;
+  columnsToDisplay = ['id', 'prediction', 'probability'];
+
+  constructor() {
+  }
 
   ngOnInit(): void {
   }
