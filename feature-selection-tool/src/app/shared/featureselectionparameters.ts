@@ -3,5 +3,7 @@ export class FeatureSelectionParameters {
   classifiers: string[];
   hpc: boolean;
   target: string;
+  k: number;
+  metric: string;
   csvBase64: string | ArrayBuffer;
 }

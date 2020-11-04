@@ -11,6 +11,7 @@ export class ParamsformComponent implements OnInit {
 
   @Output() sendParams: EventEmitter<FeatureSelectionParameters> = new EventEmitter<FeatureSelectionParameters>();
   paramsForm: FormGroup;
+  metrics: string[] = ['f1-score', 'precision', 'recall'];
   params: FeatureSelectionParameters;
   defaultForm = {
     fs_rf: false,
@@ -24,10 +25,14 @@ export class ParamsformComponent implements OnInit {
     rf: false,
     svm: false,
     nn: false,
+    knn: false,
     hpc: false,
+    k: 10,
+    metric: 'f1-score',
     target: '',
     csvPath: '',
   };
+  defaultMetric = 'f1-score';
 
   constructor(private fb: FormBuilder) {
     this.createForm();

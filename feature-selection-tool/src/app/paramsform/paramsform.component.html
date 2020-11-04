@@ -45,11 +45,27 @@
           <p>
             <mat-slide-toggle formControlName="knn">K-Nearest Neighbours</mat-slide-toggle>
           </p>
+          <p>
+            <mat-form-field>
+              <mat-label><b>Target name</b></mat-label>
+              <input required="true" formControlName="target" matInput>
+            </mat-form-field>
+          </p>
+          <p>
+            <mat-form-field>
+              <mat-label><b>The number of selected features</b></mat-label>
+              <input type="number" formControlName="k" matInput>
+            </mat-form-field>
+          </p>
 
-          <mat-form-field>
-            <mat-label><b>Target name</b></mat-label>
-            <input formControlName="target" matInput>
-          </mat-form-field>
+          <p>
+            Metric
+            <mat-select [(ngModel)]="defaultMetric" [placeholder]="defaultMetric" formControlName="metric">
+              <mat-option *ngFor="let metric of this.metrics" [value]="metric">
+                {{ metric }}
+              </mat-option>
+            </mat-select>
+          </p>
 
           <h3>HPC Mode</h3>
           <p>
@@ -59,7 +75,7 @@
 
           <h3>Select CSV file</h3>
           <p>
-            <input formControlName="csvPath" type="file" (change)="changeListener($event)">
+            <input required="true" formControlName="csvPath" type="file" (change)="changeListener($event)">
           </p>
 
           <div fxLayoutAlign="center">
