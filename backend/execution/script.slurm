@@ -2,8 +2,8 @@
 #SBATCH --partition plgrid-short
 #SBATCH --nodes 1
 #SBATCH --ntasks-per-node 6
-#SBATCH --time 3:00:00
-#SBATCH --output ${SLURM_JOBID}.txt
+#SBATCH --time 1:00:00
+#SBATCH --output log.txt
 #SBATCH -A plgimmunome
 
 unset PYTHONPATH
