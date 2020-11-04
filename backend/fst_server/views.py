@@ -152,14 +152,13 @@ def upload_csv(data, user_settings, workdir):
 
 
 def upload_configuration(data, data_path, user_settings, workdir):
-    params = {}
-    params['k'] = 10
-    params['case'] = 'F'
-    params['algorithms'] = data['algorithms']
-    params['classifiers'] = data['classifiers']
-    params['target'] = data['target']
-    params['data_path'] = data_path
-    params['metric'] = 'f1-score'
+    params = {'k': data['k'],
+              'algorithms': data['algorithms'],
+              'classifiers': data['classifiers'],
+              'target': data['target'],
+              'metric': data['metric'],
+              'case': 'F',
+              'data_path': data_path}
     fd, filename = tempfile.mkstemp()
     content = json.dumps(params)
     return create_and_upload(content, fd, filename, user_settings, workdir)

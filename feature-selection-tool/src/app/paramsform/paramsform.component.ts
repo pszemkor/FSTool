@@ -51,6 +51,8 @@ export class ParamsformComponent implements OnInit {
     this.params.classifiers = this.getSelectedClassifiers();
     this.params.target = this.paramsForm.value.target;
     this.params.hpc = this.paramsForm.value.hpc;
+    this.params.k = this.paramsForm.value.k;
+    this.params.metric = this.paramsForm.value.metric;
 
     console.log(this.params);
     this.sendParams.emit(this.params);
