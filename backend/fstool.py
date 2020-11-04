@@ -295,7 +295,7 @@ class ITSelector(FeatureSelector):
 
     def fit(self, X_train, y_train, subset_no):
         self.features_importances = info_based(X_train, y_train, self.features_subset_size, self.iterations, subset_no,
-                                               False, True)
+                                               False, False)
 
 
 class SelectKBestSelector(FeatureSelector):
