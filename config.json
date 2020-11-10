@@ -2,12 +2,12 @@
   "k": 10,
   "case": "F",
   "algorithms": [
-    "rf"
+    "boosted_it"
   ],
   "classifiers": [
-    "svm"
+    "rf"
   ],
-  "target": "SEX",
-  "data_path": "/Users/przemyslawjablecki/FeatureSelection/data.txt",
+  "target": "PATIENT",
+  "data_path": "/Users/przemyslawjablecki/FeatureSelection/res.txt",
   "metric": "f1-score"
 }

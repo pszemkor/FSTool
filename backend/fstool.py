@@ -20,10 +20,11 @@ from sklearn.linear_model import LassoCV, ElasticNetCV
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
+import random
 from rpy2.robjects import r, pandas2ri
 import rpy2.robjects as ro
 from rpy2.robjects.conversion import localconverter
-
+import networkx as nx
 from random import sample
 from collections import defaultdict
 from pandarallel import pandarallel
@@ -33,7 +34,7 @@ from pathlib import Path
 
 N_SPLITS = 5
 RANDOM_STATE = 10
-ITERATIONS = 50000
+ITERATIONS = 50
 FEATURES_SUBSET_SIZE = 10
 TARGET = ''
 CASE = 'case'
@@ -77,8 +78,7 @@ def leave_one_out(m_case, m_control, feature_subset, row_num):
     return res[0]
 
 
-def apply_iind(m_case, m_control, features_num, row_num, k):
-    feature_subset = sample(range(0, features_num), k)
+def apply_iind(m_case, m_control, feature_subset, row_num, k):
     try:
         results = leave_one_out(m_case, m_control, feature_subset, row_num)
     except Exception as e:
@@ -121,8 +121,36 @@ def get_score(feature_ind_vals, feature_ind_to_name, all_measurements, plot=Fals
     return feature_median
 
 
-def func_(col, m, m2, features_count, i, k):
-    return apply_iind(m, m2, features_count, i, k)
+def apply_iind_wrapper(m, m2, features_count, ind, k):
+    feature_subset = sample(range(0, features_count), k)
+    return apply_iind(m, m2, feature_subset, ind, k)
+
+
+def get_features_subset(components, k):
+    feature_subset = []
+    copied = components.deepcopy()
+    random.shuffle(copied)
+    shuffled_components = []
+    for component in copied:
+        random.shuffle(component)
+        shuffled_components.append(component)
+
+    N = len(shuffled_components)
+    next = [0 for _ in range(N)]
+    i = -1
+    while len(feature_subset) < k:
+        i = (i + 1) % N
+        component = shuffled_components[i]
+        if next[i] >= len(component):
+            continue
+        feature_subset.append(component[next[i]])
+        next[i] += 1
+    return feature_subset
+
+
+def ensembled_it(m, m2, ind, k, components):
+    feature_subset = get_features_subset(components, k)
+    return apply_iind(m, m2, feature_subset, ind, k)
 
 
 def collect_statistics(col, feature_ind_vals, k):
@@ -158,42 +186,36 @@ def collect_ind_to_name(m):
     return feature_ind_to_name
 
 
-def info_based(X_train, y_train, features_subset_size, iters, subset, save, read):
+def get_cases_and_controls(X_train, y_train):
     X_train[TARGET] = y_train
     m_cases = X_train[X_train[TARGET] == CASE]
     m_controls = X_train[X_train[TARGET] == CONTROL]
     del m_cases[TARGET]
     del m_controls[TARGET]
+    return m_cases, m_controls
 
+
+def info_based(X_train, y_train, features_subset_size, iters, components=None):
     start = time.time()
+
+    m_cases, m_controls = get_cases_and_controls(X_train, y_train)
     feature_ind_to_name = collect_ind_to_name(m_cases)
+
     FEATURES_COUNT = m_cases.shape[1]
     print('FEATURES COUNT', FEATURES_COUNT)
-
     all_measurements = dict()
-    importance_per_patient = dict()
     for patient_ind, ind_row in enumerate(m_cases.iterrows()):
-        # Perform FS algorithm
         print("Starting for k = ", features_subset_size, ", patient = ", ind_row[0], "(i={})...".format(patient_ind))
-
-        if not read:
-            d = pd.DataFrame(-1, index=np.arange(2 * features_subset_size), columns=[i + 1 for i in range(iters)])
-            d = d.transpose()
+        d = pd.DataFrame(-1, index=np.arange(2 * features_subset_size), columns=[i + 1 for i in range(iters)])
+        d = d.transpose()
+        if not components:
             d = d.parallel_apply(
-                lambda col: func_(col, m_cases, m_controls, FEATURES_COUNT, patient_ind, features_subset_size), axis=1)
-
-        path = './{}/{}/{}/{}/{}'.format(DATE, KIND, iters, features_subset_size, subset)
-        if save:
-            d_to_write = d.to_frame()
-            d_to_write.columns = d_to_write.columns.astype(str)
-            # ./date/(fvl|res)/(iterations)/(features_subset_size)/(subset)/patient_id(absolute in whole dataset).
-            # i.e. ./18_10_2020/fvl/200000/15/2/13.parquet
-            Path(path).mkdir(parents=True, exist_ok=True)
-            d_to_write.to_parquet(path + '/{}.parquet'.format(ind_row[0]))
-            print("Result saved for k = ", features_subset_size, ", patient = ", ind_row[0], "...")
-        if read:
-            d = pd.read_parquet(path + '/{}.parquet'.format(ind_row[0])).iloc[:, 0]
-
+                lambda col: apply_iind_wrapper(m_cases, m_controls, FEATURES_COUNT, patient_ind, features_subset_size),
+                axis=1)
+        else:
+            d = d.parallel_apply(
+                lambda col: ensembled_it(m_cases, m_controls, patient_ind, features_subset_size,
+                                         components), axis=1)
         # collect results
         feature_ind_vals = defaultdict(list)
         d.apply(lambda row: collect_statistics(row, feature_ind_vals, features_subset_size))
@@ -204,8 +226,8 @@ def info_based(X_train, y_train, features_subset_size, iters, subset, save, read
         median = np.median(vals)
         all_measurements_medians[feature_ind] = median
     end = time.time()
-    print('Elapsed: ', end - start)
 
+    print('Elapsed: ', end - start)
     return [all_measurements_medians[i] for i in range(0, FEATURES_COUNT)]
 
 
@@ -215,6 +237,7 @@ class FeatureSelector:
     def __init__(self, name):
         self.name = name
         self.features = features
+        self.features_importances = []
 
     def get_features_importances(self):
         return self.features_importances
@@ -256,6 +279,9 @@ class MCFSSelector(FeatureSelector):
         pass
 
     def fit(self, X_train, y_train, subset_no):
+        print('.libPaths( c( "{}" , .libPaths() ) )'.format(scratch_path))
+        r('.libPaths( c( "{}" , .libPaths() ) )'.format(scratch_path))
+        # r('options(install.packages.compile.from.source = "always")')
         r('install.packages("rmcfs", repos="https://cloud.r-project.org/")')
         r.library("rmcfs")
         r.library("dplyr")
@@ -294,8 +320,28 @@ class ITSelector(FeatureSelector):
         self.features_subset_size = features_subset_size
 
     def fit(self, X_train, y_train, subset_no):
-        self.features_importances = info_based(X_train, y_train, self.features_subset_size, self.iterations, subset_no,
-                                               False, False)
+        self.features_importances = info_based(X_train, y_train, self.features_subset_size, self.iterations)
+
+
+class BoostedITSelector(FeatureSelector):
+    def __init__(self, iterations, features_subset_size):
+        super().__init__('BoostedITSelector')
+        self.iterations = iterations
+        self.features_subset_size = features_subset_size
+
+    def fit(self, X_train, y_train, subset_no):
+        G = nx.Graph()
+        cor_matrix = X_train.corr(method='kendall')
+        THRESHOLD = 0.7
+        for i in range(len(cor_matrix.columns)):
+            for j in range(i + 1, len(cor_matrix.columns)):
+                if abs(cor_matrix.iloc[i, j]) > THRESHOLD:
+                    G.add_edge(i, j)
+        components = nx.connected_components(G)
+        for c in components:
+            print(c)
+
+        self.features_importances = info_based(X_train, y_train, self.features_subset_size, self.iterations)
 
 
 class SelectKBestSelector(FeatureSelector):
@@ -584,9 +630,14 @@ def get_font_size(rows):
 pandarallel.initialize(progress_bar=False)
 # READ ARGUMENTS
 args = sys.argv
-scratch_path = args[1]
-job_id = args[2]
-config_path = args[3]
+# scratch_path = args[1]
+# job_id = args[2]
+# config_path = args[3]
+config_path = '/Users/przemyslawjablecki/FeatureSelection/config.json'
+scratch_path = '/Users/przemyslawjablecki/FeatureSelection'
+import random
+
+job_id = str(random.randint(1, 10000))
 
 config = Configuration(config_path)
 results_path = os.path.join(scratch_path, job_id)
@@ -606,7 +657,8 @@ available_selectors = {'rf': RandomForestSelector(),
                        'elastic': ElasticNetSelector(),
                        'rmcfs': MCFSSelector(),
                        'kendall': KendallSelector(),
-                       'pearson': PearsonSelector()}
+                       'pearson': PearsonSelector(),
+                       'boosted_it': BoostedITSelector(ITERATIONS, FEATURES_SUBSET_SIZE)}
 
 available_classifiers = {'rf': RandomForestClassifier(n_estimators=300),
                          'svm': SVC(probability=True),
