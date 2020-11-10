@@ -320,7 +320,7 @@ class CorrelationSelector(FeatureSelector):
         correlation = df.corr(method=self.method_name)
         cor_target = abs(correlation[TARGET])
         self.features_importances = list(
-            sorted([float('-inf') if np.isnan(val) else val for val, name in zip(cor_target, df.columns)],
+            sorted([float('-inf') if np.isnan(val) else abs(val) for val, name in zip(cor_target, df.columns)],
                    reverse=True))
 
 
