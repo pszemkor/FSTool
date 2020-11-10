@@ -40,7 +40,7 @@ def fs_request(request):
     configuration_file = upload_configuration(data, name_of_file, user_settings, workdir)
 
     logger.info(prefix + "Uploading script.slurm")
-    script = upload_slurm_script(configuration_file, request)
+    script = upload_slurm_script(configuration_file, request, user_settings.grant_id)
 
     logger.info(prefix + "Sending request")
     response = requests.post('https://rimrock.plgrid.pl/api/jobs',
@@ -90,10 +90,14 @@ def settings(request):
         count = HPCSettings.objects.count()
         if count >= 1:
             HPCSettings.objects.all().delete()
+        print(request.data)
         user_name = request.data['user_name']
         proxy_certificate = request.data['proxy_certificate']
         host = request.data['host']
-        hpc_settings = HPCSettings.objects.create(user_name=user_name, proxy_certificate=proxy_certificate, host=host)
+        grant = request.data['grant_id']
+
+        hpc_settings = HPCSettings.objects.create(user_name=user_name, grant_id=grant,
+                                                  proxy_certificate=proxy_certificate, host=host)
         return JsonResponse(model_to_dict(hpc_settings))
     else:
         return JsonResponse(model_to_dict(HPCSettings.objects.first()) if HPCSettings.objects.first() else {})
@@ -139,9 +143,9 @@ def upload_fs_script(user_settings, workdir):
     upload_file("fstool.py", user_settings, workdir)
 
 
-def upload_slurm_script(configuration_file, request):
+def upload_slurm_script(configuration_file, request, grant_id):
     with open('execution/script.slurm') as f:
-        script = f.read().format('${SCRATCH}', '${SLURM_JOBID}', configuration_file)
+        script = f.read().format('${SCRATCH}', '${SLURM_JOBID}', configuration_file, grant_id)
     return script
 
 

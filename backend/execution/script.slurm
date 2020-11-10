@@ -4,7 +4,7 @@
 #SBATCH --ntasks-per-node 6
 #SBATCH --time 1:00:00
 #SBATCH --output log.txt
-#SBATCH -A plgimmunome
+#SBATCH -A {3}
 
 unset PYTHONPATH
 module load plgrid/tools/python/3.6.5

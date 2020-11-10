@@ -17,6 +17,7 @@ class HPCSettings(models.Model):
     user_name = models.CharField(primary_key=True, max_length=200, null=False)
     proxy_certificate = models.TextField(null=False)
     host = models.CharField(max_length=200, null=False)
+    grant_id = models.CharField(max_length=200, null=False)
 
 
 @auto_str

@@ -33,13 +33,8 @@ export class HPCSettingsService {
         'Content-Type': 'application/json'
       })
     };
-    this.settingsDict = {
-      user_name: settings.user_name,
-      host: settings.host,
-      proxy_certificate: settings.proxy_certificate,
-    };
 
-    return this.http.post<HPCSettings>(baseURL + 'settings', this.settingsDict, httpOptions)
+    return this.http.post<HPCSettings>(baseURL + 'settings', settings, httpOptions)
       .pipe(catchError(this.errorProcessor.handleError));
   }
 }

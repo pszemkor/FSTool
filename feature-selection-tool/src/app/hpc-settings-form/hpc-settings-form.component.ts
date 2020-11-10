@@ -26,7 +26,7 @@ export class HPCSettingsFormComponent implements OnInit {
           this.hpcSettings = (response as HPCSettings);
           this.settingsForm.reset({
             user_name: this.hpcSettings.user_name,
-            // grantId: this.hpcSettings.grantId,
+            grant_id: this.hpcSettings.grant_id,
             host: this.hpcSettings.host,
             proxy_certificate: this.hpcSettings.proxy_certificate,
           });
@@ -43,13 +43,14 @@ export class HPCSettingsFormComponent implements OnInit {
       user_name: this.hpcSettings.user_name,
       host: this.hpcSettings.host,
       proxy_certificate: this.hpcSettings.proxy_certificate,
+      grant_id: this.hpcSettings.grant_id
     });
   }
 
   onSubmit() {
     this.tempSettings = new HPCSettings();
     this.tempSettings.user_name = this.settingsForm.value.user_name;
-    // this.tempSettings.grantId = this.settingsForm.value.grantId;
+    this.tempSettings.grant_id = this.settingsForm.value.grant_id;
     this.tempSettings.host = this.settingsForm.value.host;
     this.tempSettings.proxy_certificate = this.settingsForm.value.proxy_certificate;
 
@@ -58,7 +59,7 @@ export class HPCSettingsFormComponent implements OnInit {
           this.hpcSettings = (response as HPCSettings);
           this.settingsForm.reset({
               user_name: this.hpcSettings.user_name,
-              // grantId: this.hpcSettings.grantId,
+              grant_id: this.hpcSettings.grant_id,
               host: this.hpcSettings.host,
               proxy_certificate: this.hpcSettings.proxy_certificate,
             }
