@@ -34,7 +34,7 @@ from pathlib import Path
 
 N_SPLITS = 5
 RANDOM_STATE = 10
-ITERATIONS = 50
+ITERATIONS = 50000
 FEATURES_SUBSET_SIZE = 10
 TARGET = ''
 CASE = 'case'
