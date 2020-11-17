@@ -1,6 +1,7 @@
 from warnings import filterwarnings
 
 filterwarnings('ignore')
+
 import pickle
 import pandas as pd
 import numpy as np
@@ -8,6 +9,7 @@ import base64
 import json
 import os
 import sys
+import copy
 import seaborn as sns
 from typing import List, Dict
 import matplotlib.pyplot as plt
@@ -20,7 +22,6 @@ from sklearn.linear_model import LassoCV, ElasticNetCV
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
-import random
 from rpy2.robjects import r, pandas2ri
 import rpy2.robjects as ro
 from rpy2.robjects.conversion import localconverter
@@ -30,18 +31,18 @@ from collections import defaultdict
 from pandarallel import pandarallel
 import csv
 import time
-from pathlib import Path
 
 N_SPLITS = 5
 RANDOM_STATE = 10
 ITERATIONS = 50000
 FEATURES_SUBSET_SIZE = 10
 TARGET = ''
-CASE = 'case'
-CONTROL = 'control'
+CONTROL = 'M'
+CASE = 'F'
 DATE = '18_10_2020'
-SUBSET = 0  # in range 0 to N_SPLITS-1
+THRESHOLD = 0.7
 KIND = 'fvl'
+SUBSET = 0  # in range 0 to N_SPLITS-1
 
 
 def iind(matrix, alpha=0.5):
@@ -54,7 +55,6 @@ def iind(matrix, alpha=0.5):
     m1 = matrix.sum(axis=1)
     m2 = matrix.sum(axis=0)
     outer_p = np.outer(m1, m2)
-    factor = 1 / (p - 1)
     s = np.divide(np.power(matrix, p), np.power(outer_p, (p - 1))).sum().sum()
     dividend = np.log(s)
     divisor = (np.log(np.sum(np.power(m2, (2 - p)))))
@@ -128,7 +128,7 @@ def apply_iind_wrapper(m, m2, features_count, ind, k):
 
 def get_features_subset(components, k):
     feature_subset = []
-    copied = components.deepcopy()
+    copied = copy.deepcopy(components)
     random.shuffle(copied)
     shuffled_components = []
     for component in copied:
@@ -200,7 +200,6 @@ def info_based(X_train, y_train, features_subset_size, iters, components=None):
 
     m_cases, m_controls = get_cases_and_controls(X_train, y_train)
     feature_ind_to_name = collect_ind_to_name(m_cases)
-
     FEATURES_COUNT = m_cases.shape[1]
     print('FEATURES COUNT', FEATURES_COUNT)
     all_measurements = dict()
@@ -332,16 +331,18 @@ class BoostedITSelector(FeatureSelector):
     def fit(self, X_train, y_train, subset_no):
         G = nx.Graph()
         cor_matrix = X_train.corr(method='kendall')
-        THRESHOLD = 0.7
+        G.add_nodes_from([i for i in range(len(cor_matrix.columns))])
         for i in range(len(cor_matrix.columns)):
             for j in range(i + 1, len(cor_matrix.columns)):
                 if abs(cor_matrix.iloc[i, j]) > THRESHOLD:
                     G.add_edge(i, j)
         components = nx.connected_components(G)
+        all_components = list()
         for c in components:
-            print(c)
+            all_components.append(list(c))
 
-        self.features_importances = info_based(X_train, y_train, self.features_subset_size, self.iterations)
+        self.features_importances = info_based(X_train, y_train, self.features_subset_size, self.iterations,
+                                               all_components)
 
 
 class SelectKBestSelector(FeatureSelector):
@@ -427,7 +428,7 @@ class CVEvaluator:
         and performing GridSearchCV on the whole dataset to find the most accurate/sensitive classifier.
         """
 
-    def __init__(self, n_splits, fs_aggregator, labels, data, kind, clfs, config):
+    def __init__(self, n_splits, fs_aggregator, labels, data, clfs, config):
         """
         Init CVEvaluator.
 
@@ -436,14 +437,12 @@ class CVEvaluator:
             fs_aggregator: FeatureSelectorsAggregator for feature selection at each split.
             labels: list of strings representing labels.
             data: Pandas dataframe containing samples in rows with len(features) columns each.
-            kind: healthy, fvl, res.
             clfs: classifiers to be used for classification task.
         """
         self.n_splits = n_splits
         self.fs_aggregator = fs_aggregator
         self.labels = labels
         self.data = data
-        self.kind = kind
         self.clfs = clfs
         self.config: Configuration = config
 
@@ -575,6 +574,7 @@ class Configuration:
         self.target = conf_dict['target']
         self.data_path = conf_dict['data_path']
         self.case = conf_dict['case']
+        self.control = conf_dict['control']
         self.metric = conf_dict['metric']
 
 
@@ -630,20 +630,17 @@ def get_font_size(rows):
 pandarallel.initialize(progress_bar=False)
 # READ ARGUMENTS
 args = sys.argv
-# scratch_path = args[1]
-# job_id = args[2]
-# config_path = args[3]
-config_path = '/Users/przemyslawjablecki/FeatureSelection/config.json'
-scratch_path = '/Users/przemyslawjablecki/FeatureSelection'
-import random
-
-job_id = str(random.randint(1, 10000))
+scratch_path = args[1]
+job_id = args[2]
+config_path = args[3]
 
 config = Configuration(config_path)
 results_path = os.path.join(scratch_path, job_id)
 os.mkdir(results_path)
 
 TARGET = config.target
+CASE = config.case
+CONTROL = config.control
 input_data_filename = config.data_path
 data = DataReader().read(input_data_filename)
 df, labels = DataReader().read_data(data, TARGET)
@@ -668,7 +665,7 @@ available_classifiers = {'rf': RandomForestClassifier(n_estimators=300),
 fs_selectors = [available_selectors[algo] for algo in config.algorithms]
 fs_classifiers = [available_classifiers[clsf] for clsf in config.classifiers]
 fs_aggregator = FeatureSelectorsAggregator(fs_selectors)
-cv_evaluator = CVEvaluator(N_SPLITS, fs_aggregator, labels, df, KIND, fs_classifiers, config)
+cv_evaluator = CVEvaluator(N_SPLITS, fs_aggregator, labels, df, fs_classifiers, config)
 selectors_reports = cv_evaluator.perform_evaluation()
 
 for selector in fs_selectors:

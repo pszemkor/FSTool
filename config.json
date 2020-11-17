@@ -7,7 +7,7 @@
   "classifiers": [
     "rf"
   ],
-  "target": "PATIENT",
-  "data_path": "/Users/przemyslawjablecki/FeatureSelection/res.txt",
+  "target": "SEX",
+  "data_path": "/Users/przemyslawjablecki/FeatureSelection/data.txt",
   "metric": "f1-score"
 }

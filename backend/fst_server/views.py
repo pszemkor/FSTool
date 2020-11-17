@@ -3,7 +3,6 @@ import os
 import sys
 import tempfile
 from datetime import datetime
-from typing import List
 import requests
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, JsonResponse
@@ -162,6 +161,7 @@ def upload_configuration(data, data_path, user_settings, workdir):
               'target': data['target'],
               'metric': data['metric'],
               'case': 'F',
+              'control': 'M',
               'data_path': data_path}
     fd, filename = tempfile.mkstemp()
     content = json.dumps(params)
