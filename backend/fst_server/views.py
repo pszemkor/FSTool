@@ -42,12 +42,8 @@ def fs_request(request):
     script = upload_slurm_script(configuration_file, request, user_settings.grant_id)
 
     logger.info(prefix + "Sending request")
-    response = requests.post('https://rimrock.plgrid.pl/api/jobs',
-                             json={'host': user_settings.host,
-                                   'working_directory': workdir,
-                                   'script': script},
-                             headers={'Content-type': 'application/json',
-                                      "PROXY": user_settings.proxy_certificate})
+    response = send_request(script, user_settings, workdir)
+
     response_content = response.json()
     if response.ok:
         Job.objects.create(job_id=response_content['job_id'], status=response_content['status'],
@@ -137,9 +133,40 @@ def images(request, image_id):
     return HttpResponse(Image.objects.get(pk=image_id).image_binary, 'image/png')
 
 
+@api_view(['POST'])
+def setup(request):
+    settings = HPCSettings.objects.all()
+    if len(settings) != 1:
+        return HttpResponse("Missing settings", status=500)
+
+    user_settings = settings[0]
+    workdir = '/net/scratch/people/{}'.format(user_settings.user_name)
+    script = upload_setup_script(user_settings.grant_id)
+
+    response = send_request(script, user_settings, workdir)
+    if not response.ok:
+        return HttpResponse(response.reason, status=500)
+    return HttpResponse(status=200)
+
+
+def send_request(script, user_settings, workdir):
+    return requests.post('https://rimrock.plgrid.pl/api/jobs',
+                         json={'host': user_settings.host,
+                               'working_directory': workdir,
+                               'script': script},
+                         headers={'Content-type': 'application/json',
+                                  "PROXY": user_settings.proxy_certificate})
+
+
 def upload_fs_script(user_settings, workdir):
     print(os.getcwd())
     upload_file("fstool.py", user_settings, workdir)
+
+
+def upload_setup_script(grant_id):
+    with open('execution/script.slurm') as f:
+        script = f.read().format(grant_id)
+    return script
 
 
 def upload_slurm_script(configuration_file, request, grant_id):
