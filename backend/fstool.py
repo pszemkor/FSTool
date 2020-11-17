@@ -23,9 +23,9 @@ from sklearn.linear_model import LassoCV, ElasticNetCV
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
-# from rpy2.robjects import r, pandas2ri
-# import rpy2.robjects as ro
-# from rpy2.robjects.conversion import localconverter
+from rpy2.robjects import r, pandas2ri
+import rpy2.robjects as ro
+from rpy2.robjects.conversion import localconverter
 import networkx as nx
 from random import sample
 import random
