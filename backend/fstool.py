@@ -656,7 +656,7 @@ classifiers_settings = {'rf': {'n_estimators': 300},
                         'svm': {'probability': True},
                         'knn': {'n_neighbors': 3},
                         'nn': {'hidden_layer_sizes': (k, 100, len(set(labels)))}}
-available_classifier = {'rf': RandomForestSelector, 'svm': SVC, 'knn': KNeighborsClassifier, 'nn': MLPClassifier}
+available_classifier = {'rf': RandomForestClassifier, 'svm': SVC, 'knn': KNeighborsClassifier, 'nn': MLPClassifier}
 
 
 def create_classifier_by_name(name: str):

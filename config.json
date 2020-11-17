@@ -1,11 +1,12 @@
 {
   "k": 10,
   "case": "F",
+  "control": "M",
   "algorithms": [
-    "boosted_it"
+    "rf"
   ],
   "classifiers": [
-    "rf"
+    "rf", "nn"
   ],
   "target": "SEX",
   "data_path": "/Users/przemyslawjablecki/FeatureSelection/data.txt",
