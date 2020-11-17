@@ -1,3 +1,4 @@
+from pathlib import Path
 from warnings import filterwarnings
 
 filterwarnings('ignore')
@@ -22,9 +23,9 @@ from sklearn.linear_model import LassoCV, ElasticNetCV
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
-from rpy2.robjects import r, pandas2ri
-import rpy2.robjects as ro
-from rpy2.robjects.conversion import localconverter
+# from rpy2.robjects import r, pandas2ri
+# import rpy2.robjects as ro
+# from rpy2.robjects.conversion import localconverter
 import networkx as nx
 from random import sample
 import random
@@ -35,7 +36,7 @@ import time
 
 N_SPLITS = 5
 RANDOM_STATE = 10
-ITERATIONS = 50000
+ITERATIONS = 50
 FEATURES_SUBSET_SIZE = 10
 TARGET = ''
 CONTROL = 'M'
@@ -216,6 +217,15 @@ def info_based(X_train, y_train, features_subset_size, iters, components=None):
             d = d.parallel_apply(
                 lambda col: ensembled_it(m_cases, m_controls, patient_ind, features_subset_size,
                                          components), axis=1)
+        NAME = "17_Nov"
+        global SUBSET
+        path = './{}/{}/{}/{}/{}'.format(NAME, KIND, iters, features_subset_size, SUBSET)
+        d_to_write = d.to_frame()
+        d_to_write.columns = d_to_write.columns.astype(str)
+        Path(path).mkdir(parents=True, exist_ok=True)
+        d_to_write.to_parquet(path + '/{}.parquet'.format(ind_row[0]))
+        print("Result saved for k = ", features_subset_size, ", patient = ", ind_row[0], "...")
+
         # collect results
         feature_ind_vals = defaultdict(list)
         d.apply(lambda row: collect_statistics(row, feature_ind_vals, features_subset_size))
@@ -463,6 +473,8 @@ class CVEvaluator:
                 fold_report, features_rank = self.get_fold_report(X_train, X_test, y_train, y_test, selected_features)
                 selector_reports[selector_name].add_fold_report(fold_report)
                 features_rank_per_fold[selector_name].append(features_rank)
+            global SUBSET
+            SUBSET += 1
 
         for selector_name, selector_ranks in features_rank_per_fold.items():
             max_rank = {}
