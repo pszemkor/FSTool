@@ -476,21 +476,14 @@ class CVEvaluator:
         return selector_reports
 
     def get_fold_report(self, X_train, X_test, y_train, y_test, selected_features):
-        fold_report = FoldReport(
-            [FeatureStats(name, importance) for name, importance in selected_features[:self.config.k]])
-        features_name = [name for name, i in selected_features]
+        k_features = selected_features[:self.config.k]
+        fold_report = FoldReport([FeatureStats(name, importance) for name, importance in k_features])
+        features_name = [name for name, i in k_features]
         X_train, X_test = X_train[features_name], X_test[features_name]
-        metric_vals = []
-        print('classifiers:', self.clfs)
-        for clf in self.clfs:
-            clf.fit(X_train, y_train)
-            y_predicted = clf.predict(X_test)
-            report = classification_report(y_test, y_predicted, output_dict=True)
-            fold_report.add_classification_report(str(clf).upper(), report)
-            metric_val = report['weighted avg'][self.config.metric]
-            metric_vals.append(metric_val)
-        print('metric_vals', metric_vals)
+
+        metric_vals = self.perform_classification(X_test, X_train, fold_report, y_test, y_train)
         avg_metric = sum(metric_vals) / len(metric_vals)
+
         N = len(selected_features)
         features_rank = {}
         for rank, (name, importance) in enumerate(selected_features):
@@ -498,6 +491,18 @@ class CVEvaluator:
             features_rank[name] = rank_val
 
         return fold_report, features_rank
+
+    def perform_classification(self, X_test, X_train, fold_report, y_test, y_train):
+        metric_vals = []
+        for clf_name in self.clfs:
+            clf = create_classifier_by_name(clf_name)
+            clf.fit(X_train, y_train)
+            y_predicted = clf.predict(X_test)
+            report = classification_report(y_test, y_predicted, output_dict=True)
+            fold_report.add_classification_report(str(clf).upper(), report)
+            metric_val = report['weighted avg'][self.config.metric]
+            metric_vals.append(metric_val)
+        return metric_vals
 
 
 class FeatureStats:
@@ -589,7 +594,8 @@ def write_correlation_heatmap(selector_path, features, df):
 
 def write_pickles(selector_path: str, selector_name: str, df: pd.DataFrame, features: list, labels: list,
                   classifiers: list):
-    for cls in classifiers:
+    for cls_name in classifiers:
+        cls = create_classifier_by_name(cls_name)
         cls.fit(df[features], labels)
         cls.selected_features = features
         pickle.dump(cls,
@@ -646,6 +652,17 @@ data = DataReader().read(input_data_filename)
 df, labels = DataReader().read_data(data, TARGET)
 features = list(df.columns)
 k = int(config.k)
+classifiers_settings = {'rf': {'n_estimators': 300},
+                        'svm': {'probability': True},
+                        'knn': {'n_neighbors': 3},
+                        'nn': {'hidden_layer_sizes': (k, 100, len(set(labels)))}}
+available_classifier = {'rf': RandomForestSelector, 'svm': SVC, 'knn': KNeighborsClassifier, 'nn': MLPClassifier}
+
+
+def create_classifier_by_name(name: str):
+    kwargs = classifiers_settings[name]
+    return available_classifier[name](**kwargs)
+
 
 available_selectors = {'rf': RandomForestSelector(),
                        'it': ITSelector(ITERATIONS, FEATURES_SUBSET_SIZE),
@@ -657,15 +674,9 @@ available_selectors = {'rf': RandomForestSelector(),
                        'pearson': PearsonSelector(),
                        'boosted_it': BoostedITSelector(ITERATIONS, FEATURES_SUBSET_SIZE)}
 
-available_classifiers = {'rf': RandomForestClassifier(n_estimators=300),
-                         'svm': SVC(probability=True),
-                         'knn': KNeighborsClassifier(n_neighbors=3),
-                         'nn': MLPClassifier((k, 100, len(set(labels))))}
-
 fs_selectors = [available_selectors[algo] for algo in config.algorithms]
-fs_classifiers = [available_classifiers[clsf] for clsf in config.classifiers]
 fs_aggregator = FeatureSelectorsAggregator(fs_selectors)
-cv_evaluator = CVEvaluator(N_SPLITS, fs_aggregator, labels, df, fs_classifiers, config)
+cv_evaluator = CVEvaluator(N_SPLITS, fs_aggregator, labels, df, config.classifiers, config)
 selectors_reports = cv_evaluator.perform_evaluation()
 
 for selector in fs_selectors:
@@ -676,6 +687,6 @@ for selector in fs_selectors:
     os.mkdir(selector_path)
 
     write_graphs(selector_path, report)
-    write_pickles(selector_path, selector_name, df, features, labels, fs_classifiers)
+    write_pickles(selector_path, selector_name, df, features, labels, config.classifiers)
     write_report(selector_path, report)
     write_correlation_heatmap(selector_path, features, df)
