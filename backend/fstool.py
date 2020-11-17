@@ -27,6 +27,7 @@ import rpy2.robjects as ro
 from rpy2.robjects.conversion import localconverter
 import networkx as nx
 from random import sample
+import random
 from collections import defaultdict
 from pandarallel import pandarallel
 import csv
