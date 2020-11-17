@@ -10,8 +10,6 @@ import {catchError} from 'rxjs/operators';
 })
 export class HPCSettingsService {
 
-  private settingsDict: {};
-
   constructor(private http: HttpClient,
               private errorProcessor: ErrorMessageProcessorService) {
   }
