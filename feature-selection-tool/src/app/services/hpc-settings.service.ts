@@ -10,8 +10,6 @@ import {catchError} from 'rxjs/operators';
 })
 export class HPCSettingsService {
 
-  private settingsDict: {};
-
   constructor(private http: HttpClient,
               private errorProcessor: ErrorMessageProcessorService) {
   }
@@ -35,6 +33,11 @@ export class HPCSettingsService {
     };
 
     return this.http.post<HPCSettings>(baseURL + 'settings', settings, httpOptions)
+      .pipe(catchError(this.errorProcessor.handleError));
+  }
+
+  sendSetupRequest() {
+    return this.http.post<any>(baseURL + 'setup', 'setUp')
       .pipe(catchError(this.errorProcessor.handleError));
   }
 }

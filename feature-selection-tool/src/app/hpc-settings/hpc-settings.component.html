@@ -1,3 +1,21 @@
 <div class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign.gt-md="space-around center">
-    <app-hpc-settings-form></app-hpc-settings-form>
+  <app-hpc-settings-form></app-hpc-settings-form>
+  <hr>
+  <mat-card fxFlex style="width: 40%">
+    <mat-card-title fxLayoutAlign="center">
+      Environment setup
+    </mat-card-title>
+    <div style="margin-top: 30px"></div>
+    <div fxLayoutAlign="center">
+      <button (click)="setupEnvironment()" class="mat-primary" mat-raised-button color="primary">Set up the environment
+      </button>
+    </div>
+    <div *ngIf="setUpStatus" style="margin-top: 15px;">
+      <h3 fxLayoutAlign="center" class="mat-h1">Status: {{setUpStatus}}</h3>
+      <div *ngIf="errorMessage">
+        <h4 fxLayoutAlign="center" class="mat-h2, error_color">Reason: {{errorMessage}}</h4>
+      </div>
+    </div>
+  </mat-card>
+
 </div>
