@@ -23,9 +23,6 @@ from sklearn.linear_model import LassoCV, ElasticNetCV
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
-from rpy2.robjects import r, pandas2ri
-import rpy2.robjects as ro
-from rpy2.robjects.conversion import localconverter
 import networkx as nx
 from random import sample
 import random
@@ -284,6 +281,10 @@ class MCFSSelector(FeatureSelector):
         pass
 
     def fit(self, X_train, y_train, subset_no):
+        from rpy2.robjects import r, pandas2ri
+        import rpy2.robjects as ro
+        from rpy2.robjects.conversion import localconverter
+
         print('.libPaths( c( "{}" , .libPaths() ) )'.format(scratch_path))
         r('.libPaths( c( "{}" , .libPaths() ) )'.format(scratch_path))
         # r('options(install.packages.compile.from.source = "always")')
