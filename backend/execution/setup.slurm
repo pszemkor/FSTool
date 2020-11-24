@@ -12,12 +12,14 @@ fi
 
 unset PYTHONPATH
 
-module load plgrid/tools/python/3.6.5
+module load plgrid/tools/python/3.8
 module load plgrid/apps/r/3.6.0
 
 python3 -m virtualenv ~/fstool-env
 source ~/fstool-env/bin/activate
 
 pip3 install numpy pandas matplotlib seaborn scikit-learn networkx pyarrow fastparquet rpy2 pandarallel
+
+echo SUCCESS
 
 exit 0
