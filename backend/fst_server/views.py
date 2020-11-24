@@ -164,7 +164,7 @@ def upload_fs_script(user_settings, workdir):
 
 
 def upload_setup_script(grant_id):
-    with open('execution/script.slurm') as f:
+    with open('execution/setup.slurm') as f:
         script = f.read().format(grant_id)
     return script
 
