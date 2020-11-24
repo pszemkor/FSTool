@@ -24,4 +24,10 @@ export class JobsComponent implements OnInit {
       )
       .subscribe(res => this.jobs = (res as Job[]));
   }
+
+  onDelete(jobId: string): void{
+    console.log('Will delete job ' + jobId);
+    this.jobsService.deleteJob(jobId).subscribe(response => console.log(response));
+  }
+
 }
