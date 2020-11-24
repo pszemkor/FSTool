@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --partition plgrid-short
 #SBATCH --nodes 1
-#SBATCH --ntasks-per-node 6
+#SBATCH --ntasks-per-node 24
 #SBATCH --time 1:00:00
-#SBATCH --output log.txt
+#SBATCH --output log-%J.txt
 #SBATCH -A {3}
 
 unset PYTHONPATH

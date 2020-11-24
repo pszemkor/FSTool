@@ -38,12 +38,7 @@ N_SPLITS = 5
 RANDOM_STATE = 10
 ITERATIONS = 50
 FEATURES_SUBSET_SIZE = 10
-TARGET = ''
-CONTROL = 'M'
-CASE = 'F'
-DATE = '18_10_2020'
 THRESHOLD = 0.7
-KIND = 'fvl'
 SUBSET = 0  # in range 0 to N_SPLITS-1
 
 
@@ -217,9 +212,9 @@ def info_based(X_train, y_train, features_subset_size, iters, components=None):
             d = d.parallel_apply(
                 lambda col: ensembled_it(m_cases, m_controls, patient_ind, features_subset_size,
                                          components), axis=1)
-        NAME = "17_Nov"
+
         global SUBSET
-        path = './{}/{}/{}/{}/{}'.format(NAME, KIND, iters, features_subset_size, SUBSET)
+        path = os.path.join(results_path, '{}/{}/{}'.format(iters, features_subset_size, SUBSET))
         d_to_write = d.to_frame()
         d_to_write.columns = d_to_write.columns.astype(str)
         Path(path).mkdir(parents=True, exist_ok=True)
@@ -238,7 +233,7 @@ def info_based(X_train, y_train, features_subset_size, iters, components=None):
     end = time.time()
 
     print('Elapsed: ', end - start)
-    return [all_measurements_medians[i] for i in range(0, FEATURES_COUNT)]
+    return [all_measurements_medians.get(i, float('-inf')) for i in range(0, FEATURES_COUNT)]
 
 
 class FeatureSelector:
