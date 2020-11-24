@@ -18,8 +18,6 @@ module load plgrid/apps/r/3.6.0
 python3 -m virtualenv ~/fstool-env
 source ~/fstool-env/bin/activate
 
-echo 1
 pip3 install numpy pandas matplotlib seaborn scikit-learn networkx pyarrow fastparquet rpy2 pandarallel
-echo 2
 
 exit 0
