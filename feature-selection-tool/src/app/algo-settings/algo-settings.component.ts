@@ -128,7 +128,7 @@ export class AlgoSettingsComponent implements OnInit {
     this.algoSettingsService.postClassifierSettings(this.tempClassifierSettings)
       .subscribe(response => {
           this.classifierSettings = (response as ClassifierSettings);
-          this.selectorSettingsForm.reset({
+          this.classifierSettingsForm.reset({
               rf_n_estimators: this.classifierSettings.rf_n_estimators,
               knn_neighbours: this.classifierSettings.knn_neighbours,
               svm_c: this.classifierSettings.svm_c,

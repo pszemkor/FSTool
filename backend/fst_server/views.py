@@ -8,7 +8,7 @@ import requests
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, JsonResponse
 from fst_server.logger import get_logger
-from fst_server.models import Classifier, HPCSettings, Job, FSResult, Image
+from fst_server.models import Classifier, HPCSettings, Job, FSResult, Image, SelectorSettings, ClassifierSettings
 from fst_server.classify import ModelEvaluator
 from rest_framework.decorators import api_view
 
@@ -98,9 +98,62 @@ def settings(request):
 
         hpc_settings = HPCSettings.objects.create(user_name=user_name, grant_id=grant,
                                                   proxy_certificate=proxy_certificate, host=host)
+        if not SelectorSettings.objects.count():
+            SelectorSettings.objects.create()
+        if not ClassifierSettings.objects.count():
+            ClassifierSettings.objects.create()
+
         return JsonResponse(model_to_dict(hpc_settings))
     else:
         return JsonResponse(model_to_dict(HPCSettings.objects.first()) if HPCSettings.objects.first() else {})
+
+
+@api_view(['POST', 'GET'])
+def selector_settings(request):
+    if request.method == 'POST':
+        count = SelectorSettings.objects.count()
+        if count >= 1:
+            SelectorSettings.objects.all().delete()
+        print(request.data)
+        rf_n_estimators = request.data['rf_n_estimators']
+        it_iterations = request.data['it_iterations']
+        it_case = request.data['it_case']
+        it_control = request.data['it_control']
+        it_subset_size = request.data['it_subset_size']
+        it_alpha = request.data['it_alpha']
+        rmcfs_cutoff_permutations = request.data['rmcfs_cutoff_permutations']
+        correlation_threshold = request.data['correlation_threshold']
+
+        s_settings = SelectorSettings.objects.create(rf_n_estimators=rf_n_estimators,
+                                                     it_iterations=it_iterations, it_case=it_case,
+                                                     it_control=it_control, it_subset_size=it_subset_size,
+                                                     it_alpha=it_alpha,
+                                                     rmcfs_cutoff_permutations=rmcfs_cutoff_permutations,
+                                                     correlation_threshold=correlation_threshold)
+        return JsonResponse(model_to_dict(s_settings))
+    else:
+        return JsonResponse(model_to_dict(SelectorSettings.objects.first()) if SelectorSettings.objects.first() else {})
+
+
+@api_view(['POST', 'GET'])
+def classifier_settings(request):
+    if request.method == 'POST':
+        count = ClassifierSettings.objects.count()
+        if count >= 1:
+            ClassifierSettings.objects.all().delete()
+        print(request.data)
+
+        rf_n_estimators = request.data['rf_n_estimators']
+        knn_neighbours = request.data['knn_neighbours']
+        svm_c = request.data['svm_c']
+        mlp_nodes = request.data['mlp_nodes']
+
+        c_settings = ClassifierSettings.objects.create(rf_n_estimators=rf_n_estimators, knn_neighbours=knn_neighbours,
+                                                       svm_c=svm_c, mlp_nodes=mlp_nodes)
+        return JsonResponse(model_to_dict(c_settings))
+    else:
+        return JsonResponse(
+            model_to_dict(ClassifierSettings.objects.first()) if ClassifierSettings.objects.first() else {})
 
 
 @api_view(['GET', 'POST'])

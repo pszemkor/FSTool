@@ -576,6 +576,8 @@ class Configuration:
         self.data_path = conf_dict['data_path']
         self.case = conf_dict['case']
         self.metric = conf_dict['metric']
+        self.selector_settings = conf_dict['selector_settings']
+        self.classifier_settings = conf_dict['classifier_settings']
 
 
 def write_correlation_heatmap(selector_path, features, df):
