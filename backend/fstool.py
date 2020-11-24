@@ -696,7 +696,8 @@ for selector in fs_selectors:
     report: SelectorReport = selectors_reports[selector_name]
     features = list(map(lambda item: item.name, report.selected_features))
     selector_path = os.path.join(results_path, selector_name)
-    os.mkdir(selector_path)
+    if os.path.isdir(selector_path):
+        os.mkdir(selector_path)
 
     write_graphs(selector_path, report)
     write_pickles(selector_path, selector_name, df, features, labels, config.classifiers)
