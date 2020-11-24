@@ -12,11 +12,11 @@ export class ErrorMessageProcessorService {
 
   public handleError(errorResponse: HttpErrorResponse | any) {
     let errorMessage: string;
-
+    console.log(errorResponse);
     if (errorResponse instanceof ErrorEvent) {
       errorMessage = errorResponse.error.message;
     } else {
-      errorMessage = `${errorResponse.status || ''} ${errorResponse.statusText || ''} Server error`;
+      errorMessage = `${errorResponse.status || ''} ${errorResponse.statusText || ''} ${errorResponse.message || ''} ${errorResponse.error || ''}`;
     }
 
     return throwError(errorMessage);
