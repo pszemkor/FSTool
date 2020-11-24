@@ -455,7 +455,7 @@ class CVEvaluator:
         self.labels = labels
         self.data = data
         self.clfs = clfs
-        self.config: Configuration = config
+        self.config = config
 
     def perform_evaluation(self):
         skf = StratifiedKFold(n_splits=self.n_splits, random_state=RANDOM_STATE, shuffle=True)
