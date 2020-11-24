@@ -110,22 +110,30 @@ def jobs(request):
         model_to_dict(Job.objects.create(job_id=job_id, status=status, start_time=start_time, end_time=end_time)))
 
 
-@api_view(['GET'])
+@api_view(['GET', 'DELETE'])
 def job_result(request, job_id):
-    fs_results = FSResult.objects.filter(job_id=job_id)
-    job_results = []
-    for fs_result in fs_results:
-        result_dict = dict()
-        json_report = json.loads(fs_result.response_json.replace("'", "\""))
-        related_imgs = Image.objects.filter(fs_result=fs_result.id)
+    if request.method == 'GET':
+        fs_results = FSResult.objects.filter(job_id=job_id)
+        job_results = []
+        for fs_result in fs_results:
+            result_dict = dict()
+            json_report = json.loads(fs_result.response_json.replace("'", "\""))
+            related_imgs = Image.objects.filter(fs_result=fs_result.id)
 
-        result_dict['report'] = json_report
-        result_dict['algoName'] = fs_result.algo_name
-        result_dict["resultImgs"] = [{"image": im.id, "name": job_id} for im in related_imgs]
+            result_dict['report'] = json_report
+            result_dict['algoName'] = fs_result.algo_name
+            result_dict["resultImgs"] = [{"image": im.id, "name": job_id} for im in related_imgs]
 
-        job_results.append(result_dict)
-    print(job_results)
-    return JsonResponse(job_results, safe=False)
+            job_results.append(result_dict)
+        print(job_results)
+        return JsonResponse(job_results, safe=False)
+    else:
+        fs_results = FSResult.objects.filter(job_id=job_id)
+        for fs_result in fs_results:
+            Image.objects.filter(fs_result=fs_result.id).delete()
+        FSResult.objects.filter(job_id=job_id).delete()
+        Job.objects.filter(job_id=job_id).delete()
+        return JsonResponse({})
 
 
 @api_view(['GET'])
