@@ -16,6 +16,7 @@ export class ParamsformComponent implements OnInit {
   defaultForm = {
     fs_rf: false,
     fs_it: false,
+    fs_boosted_it: false,
     fs_kendall: false,
     fs_pearson: false,
     fs_rmcsf: false,
@@ -63,6 +64,7 @@ export class ParamsformComponent implements OnInit {
     const algorithmsMap: Map<string, boolean> = new Map<string, boolean>([
       ['rf', this.paramsForm.value.fs_rf],
       ['it', this.paramsForm.value.fs_it],
+      ['boosted_it', this.paramsForm.value.fs_boosted_it],
       ['skbest', this.paramsForm.value.fs_skbest],
       ['pearson', this.paramsForm.value.fs_pearson],
       ['rmcfs', this.paramsForm.value.fs_rmcsf],

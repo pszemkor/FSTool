@@ -23,4 +23,9 @@ export class JobsService {
     return this.http.get<FeatureSelectionResults[]>(baseURL + 'jobs/result/' + jobId)
       .pipe(catchError(this.errorProcessor.handleError));
   }
+
+  deleteJob(jobId: string) {
+    return this.http.delete(baseURL + 'jobs/result/' + jobId)
+      .pipe(catchError(this.errorProcessor.handleError));
+  }
 }

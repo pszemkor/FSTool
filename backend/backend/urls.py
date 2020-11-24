@@ -6,7 +6,7 @@ from django.urls import path
 
 sys.path.append(os.path.abspath('../'))
 sys.path.append(os.path.abspath('..'))
-from fst_server.views import fs_request, get_models, classify, settings, jobs, job_result, images, selector_settings,\
+from fst_server.views import fs_request, get_models, classify, settings, jobs, job_result, images, setup, selector_settings,\
     classifier_settings
 
 urlpatterns = [
@@ -18,6 +18,7 @@ urlpatterns = [
     path('jobs', jobs),
     path('jobs/result/<str:job_id>', job_result),
     path('images/<str:image_id>', images),
+    path('setup', setup),
     path('selector-settings', selector_settings),
     path('classifier-settings', classifier_settings),
 ]

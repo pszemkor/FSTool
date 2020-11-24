@@ -1,13 +1,14 @@
 {
   "k": 10,
   "case": "F",
+  "control": "M",
   "algorithms": [
     "boosted_it"
   ],
   "classifiers": [
     "rf"
   ],
-  "target": "PATIENT",
-  "data_path": "/Users/przemyslawjablecki/FeatureSelection/res.txt",
+  "target": "SEX",
+  "data_path": "/Users/przemyslawjablecki/FeatureSelection/data.txt",
   "metric": "f1-score"
 }

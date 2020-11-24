@@ -35,4 +35,9 @@ export class HPCSettingsService {
     return this.http.post<HPCSettings>(baseURL + 'settings', settings, httpOptions)
       .pipe(catchError(this.errorProcessor.handleError));
   }
+
+  sendSetupRequest() {
+    return this.http.post<any>(baseURL + 'setup', 'setUp')
+      .pipe(catchError(this.errorProcessor.handleError));
+  }
 }

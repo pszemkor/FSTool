@@ -3,7 +3,6 @@ import os
 import sys
 import tempfile
 from datetime import datetime
-from typing import List
 import requests
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, JsonResponse
@@ -43,12 +42,8 @@ def fs_request(request):
     script = upload_slurm_script(configuration_file, request, user_settings.grant_id)
 
     logger.info(prefix + "Sending request")
-    response = requests.post('https://rimrock.plgrid.pl/api/jobs',
-                             json={'host': user_settings.host,
-                                   'working_directory': workdir,
-                                   'script': script},
-                             headers={'Content-type': 'application/json',
-                                      "PROXY": user_settings.proxy_certificate})
+    response = send_request(script, user_settings, workdir)
+
     response_content = response.json()
     if response.ok:
         Job.objects.create(job_id=response_content['job_id'], status=response_content['status'],
@@ -168,22 +163,30 @@ def jobs(request):
         model_to_dict(Job.objects.create(job_id=job_id, status=status, start_time=start_time, end_time=end_time)))
 
 
-@api_view(['GET'])
+@api_view(['GET', 'DELETE'])
 def job_result(request, job_id):
-    fs_results = FSResult.objects.filter(job_id=job_id)
-    job_results = []
-    for fs_result in fs_results:
-        result_dict = dict()
-        json_report = json.loads(fs_result.response_json.replace("'", "\""))
-        related_imgs = Image.objects.filter(fs_result=fs_result.id)
+    if request.method == 'GET':
+        fs_results = FSResult.objects.filter(job_id=job_id)
+        job_results = []
+        for fs_result in fs_results:
+            result_dict = dict()
+            json_report = json.loads(fs_result.response_json.replace("'", "\""))
+            related_imgs = Image.objects.filter(fs_result=fs_result.id)
 
-        result_dict['report'] = json_report
-        result_dict['algoName'] = fs_result.algo_name
-        result_dict["resultImgs"] = [{"image": im.id, "name": job_id} for im in related_imgs]
+            result_dict['report'] = json_report
+            result_dict['algoName'] = fs_result.algo_name
+            result_dict["resultImgs"] = [{"image": im.id, "name": job_id} for im in related_imgs]
 
-        job_results.append(result_dict)
-    print(job_results)
-    return JsonResponse(job_results, safe=False)
+            job_results.append(result_dict)
+        print(job_results)
+        return JsonResponse(job_results, safe=False)
+    else:
+        fs_results = FSResult.objects.filter(job_id=job_id)
+        for fs_result in fs_results:
+            Image.objects.filter(fs_result=fs_result.id).delete()
+        FSResult.objects.filter(job_id=job_id).delete()
+        Job.objects.filter(job_id=job_id).delete()
+        return JsonResponse({})
 
 
 @api_view(['GET'])
@@ -191,9 +194,40 @@ def images(request, image_id):
     return HttpResponse(Image.objects.get(pk=image_id).image_binary, 'image/png')
 
 
+@api_view(['POST'])
+def setup(request):
+    settings = HPCSettings.objects.all()
+    if len(settings) != 1:
+        return HttpResponse("Missing settings", status=500)
+
+    user_settings = settings[0]
+    workdir = '/net/scratch/people/{}'.format(user_settings.user_name)
+    script = upload_setup_script(user_settings.grant_id)
+
+    response = send_request(script, user_settings, workdir)
+    if not response.ok:
+        return HttpResponse(response.reason, status=500)
+    return HttpResponse(status=200)
+
+
+def send_request(script, user_settings, workdir):
+    return requests.post('https://rimrock.plgrid.pl/api/jobs',
+                         json={'host': user_settings.host,
+                               'working_directory': workdir,
+                               'script': script},
+                         headers={'Content-type': 'application/json',
+                                  "PROXY": user_settings.proxy_certificate})
+
+
 def upload_fs_script(user_settings, workdir):
     print(os.getcwd())
     upload_file("fstool.py", user_settings, workdir)
+
+
+def upload_setup_script(grant_id):
+    with open('execution/setup.slurm') as f:
+        script = f.read().format(grant_id)
+    return script
 
 
 def upload_slurm_script(configuration_file, request, grant_id):
@@ -215,6 +249,7 @@ def upload_configuration(data, data_path, user_settings, workdir):
               'target': data['target'],
               'metric': data['metric'],
               'case': 'F',
+              'control': 'M',
               'data_path': data_path}
     fd, filename = tempfile.mkstemp()
     content = json.dumps(params)
