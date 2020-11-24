@@ -211,7 +211,10 @@ def info_based(X_train, y_train, features_subset_size, iters, components=None):
                                          components), axis=1)
 
         global SUBSET
-        path = os.path.join(results_path, '{}/{}/{}'.format(iters, features_subset_size, SUBSET))
+        path = os.path.join(results_path,
+                            '{}/{}/{}/{}'.format("BoostedITSelector", iters, features_subset_size,
+                                                 SUBSET))
+        print("Parquet path:", path)
         d_to_write = d.to_frame()
         d_to_write.columns = d_to_write.columns.astype(str)
         Path(path).mkdir(parents=True, exist_ok=True)
