@@ -33,7 +33,7 @@ import time
 
 N_SPLITS = 5
 RANDOM_STATE = 10
-ITERATIONS = 50
+ITERATIONS = 50000
 FEATURES_SUBSET_SIZE = 10
 THRESHOLD = 0.7
 SUBSET = 0  # in range 0 to N_SPLITS-1
@@ -662,6 +662,8 @@ CONTROL = config.control
 input_data_filename = config.data_path
 data = DataReader().read(input_data_filename)
 df, labels = DataReader().read_data(data, TARGET)
+print("COLUMNS:", df.columns)
+print(labels)
 features = list(df.columns)
 k = int(config.k)
 classifiers_settings = {'rf': {'n_estimators': 300},
@@ -696,7 +698,7 @@ for selector in fs_selectors:
     report: SelectorReport = selectors_reports[selector_name]
     features = list(map(lambda item: item.name, report.selected_features))
     selector_path = os.path.join(results_path, selector_name)
-    if os.path.isdir(selector_path):
+    if not os.path.isdir(selector_path):
         os.mkdir(selector_path)
 
     write_graphs(selector_path, report)

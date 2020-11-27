@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --partition plgrid-short
+#SBATCH --partition plgrid
 #SBATCH --nodes 1
 #SBATCH --ntasks-per-node 24
-#SBATCH --time 1:00:00
+#SBATCH --time 72:00:00
 #SBATCH --output log-%J.txt
 #SBATCH -A {3}
 

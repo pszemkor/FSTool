@@ -195,8 +195,8 @@ def upload_configuration(data, data_path, user_settings, workdir):
               'classifiers': data['classifiers'],
               'target': data['target'],
               'metric': data['metric'],
-              'case': 'F',
-              'control': 'M',
+              'case': 'case',
+              'control': 'control',
               'data_path': data_path}
     fd, filename = tempfile.mkstemp()
     content = json.dumps(params)
