@@ -594,8 +594,6 @@ class Configuration:
         self.algorithms = conf_dict['algorithms']
         self.target = conf_dict['target']
         self.data_path = conf_dict['data_path']
-        self.case = conf_dict['case']
-        self.control = conf_dict['control']
         self.metric = conf_dict['metric']
         self.selector_settings = conf_dict['selector_settings']
         self.classifier_settings = conf_dict['classifier_settings']
@@ -714,7 +712,7 @@ for selector in fs_selectors:
     report: SelectorReport = selectors_reports[selector_name]
     features = list(map(lambda item: item.name, report.selected_features))
     selector_path = os.path.join(results_path, selector_name)
-    if os.path.isdir(selector_path):
+    if not os.path.isdir(selector_path):
         os.mkdir(selector_path)
 
     write_graphs(selector_path, report)
