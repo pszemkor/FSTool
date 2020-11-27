@@ -35,6 +35,8 @@ import {MatGridListModule} from '@angular/material/grid-list';
 import {HPCSettingsFormComponent} from './hpc-settings-form/hpc-settings-form.component';
 import {MatInputModule} from '@angular/material/input';
 import { AlgorithmSelectionComponent } from './algorithm-selection/algorithm-selection.component';
+import { AlgoSettingsComponent } from './algo-settings/algo-settings.component';
+import {MatSliderModule} from "@angular/material/slider";
 
 
 @NgModule({
@@ -51,7 +53,8 @@ import { AlgorithmSelectionComponent } from './algorithm-selection/algorithm-sel
     HPCSettingsComponent,
     JobsComponent,
     HPCSettingsFormComponent,
-    AlgorithmSelectionComponent
+    AlgorithmSelectionComponent,
+    AlgoSettingsComponent
   ],
   imports: [
     BrowserModule,
@@ -72,7 +75,8 @@ import { AlgorithmSelectionComponent } from './algorithm-selection/algorithm-sel
     MatTableModule,
     MatListModule,
     MatGridListModule,
-    MatInputModule
+    MatInputModule,
+    MatSliderModule
   ],
   providers: [FeatureSelectionService],
   bootstrap: [AppComponent]

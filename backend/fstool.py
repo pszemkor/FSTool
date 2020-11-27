@@ -33,14 +33,12 @@ import time
 
 N_SPLITS = 5
 RANDOM_STATE = 10
-ITERATIONS = 50000
 FEATURES_SUBSET_SIZE = 10
-THRESHOLD = 0.7
 SUBSET = 0  # in range 0 to N_SPLITS-1
 
 
-def iind(matrix, alpha=0.5):
-    p = alpha
+def iind(matrix):
+    p = ALPHA
     matrix = matrix[matrix.sum(axis=1) > 0.0]
     s = matrix.values.sum()
     if s == 0:
@@ -180,19 +178,19 @@ def collect_ind_to_name(m):
     return feature_ind_to_name
 
 
-def get_cases_and_controls(X_train, y_train):
+def get_cases_and_controls(X_train, y_train, case, control):
     X_train[TARGET] = y_train
-    m_cases = X_train[X_train[TARGET] == CASE]
-    m_controls = X_train[X_train[TARGET] == CONTROL]
+    m_cases = X_train[X_train[TARGET] == case]
+    m_controls = X_train[X_train[TARGET] == control]
     del m_cases[TARGET]
     del m_controls[TARGET]
     return m_cases, m_controls
 
 
-def info_based(X_train, y_train, features_subset_size, iters, components=None):
+def info_based(X_train, y_train, features_subset_size, iters, case, control, components=None):
     start = time.time()
 
-    m_cases, m_controls = get_cases_and_controls(X_train, y_train)
+    m_cases, m_controls = get_cases_and_controls(X_train, y_train, case, control)
     feature_ind_to_name = collect_ind_to_name(m_cases)
     FEATURES_COUNT = m_cases.shape[1]
     print('FEATURES COUNT', FEATURES_COUNT)
@@ -280,8 +278,8 @@ class ElasticNetSelector(FeatureSelector):
 
 
 class MCFSSelector(FeatureSelector):
-    def __init__(self):
-        pass
+    def __init__(self, cutoff_permutations):
+        self.cutoff_permutations = cutoff_permutations
 
     def fit(self, X_train, y_train, subset_no):
         from rpy2.robjects import r, pandas2ri
@@ -290,7 +288,6 @@ class MCFSSelector(FeatureSelector):
 
         print('.libPaths( c( "{}" , .libPaths() ) )'.format(scratch_path))
         r('.libPaths( c( "{}" , .libPaths() ) )'.format(scratch_path))
-        # r('options(install.packages.compile.from.source = "always")')
         r('install.packages("rmcfs", repos="https://cloud.r-project.org/")')
         r.library("rmcfs")
         r.library("dplyr")
@@ -303,7 +300,8 @@ class MCFSSelector(FeatureSelector):
             r_from_pd_df = ro.conversion.py2rpy(X_train)
 
         r.assign('df1', r_from_pd_df)
-        r('result <- mcfs({} ~ ., df1, cutoffPermutations = 30, seed = 2, threadsNumber = 16)'.format(TARGET))
+        r('result <- mcfs({} ~ ., df1, cutoffPermutations = {}, seed = 2, threadsNumber = 16)'
+          .format(TARGET, self.cutoff_permutations))
         r('RI <- result$RI')
         result = r['result']
         ri = r['RI']
@@ -323,20 +321,26 @@ class MCFSSelector(FeatureSelector):
 
 
 class ITSelector(FeatureSelector):
-    def __init__(self, iterations, features_subset_size):
+    def __init__(self, iterations, features_subset_size, case, control):
         super().__init__('ITSelector')
         self.iterations = iterations
         self.features_subset_size = features_subset_size
+        self.case = case
+        self.control = control
 
     def fit(self, X_train, y_train, subset_no):
-        self.features_importances = info_based(X_train, y_train, self.features_subset_size, self.iterations)
+        self.features_importances = info_based(X_train, y_train, self.features_subset_size, self.iterations, self.case,
+                                               self.control)
 
 
 class BoostedITSelector(FeatureSelector):
-    def __init__(self, iterations, features_subset_size):
+    def __init__(self, iterations, features_subset_size, case, control, correlation_threshold):
         super().__init__('BoostedITSelector')
         self.iterations = iterations
         self.features_subset_size = features_subset_size
+        self.case = case
+        self.control = control
+        self.correlation_threshold = correlation_threshold
 
     def fit(self, X_train, y_train, subset_no):
         G = nx.Graph()
@@ -344,7 +348,7 @@ class BoostedITSelector(FeatureSelector):
         G.add_nodes_from([i for i in range(len(cor_matrix.columns))])
         for i in range(len(cor_matrix.columns)):
             for j in range(i + 1, len(cor_matrix.columns)):
-                if abs(cor_matrix.iloc[i, j]) > THRESHOLD:
+                if abs(cor_matrix.iloc[i, j]) > self.correlation_threshold:
                     G.add_edge(i, j)
         components = nx.connected_components(G)
         all_components = list()
@@ -352,7 +356,7 @@ class BoostedITSelector(FeatureSelector):
             all_components.append(list(c))
 
         self.features_importances = info_based(X_train, y_train, self.features_subset_size, self.iterations,
-                                               all_components)
+                                               self.case, self.control, all_components)
 
 
 class SelectKBestSelector(FeatureSelector):
@@ -590,9 +594,9 @@ class Configuration:
         self.algorithms = conf_dict['algorithms']
         self.target = conf_dict['target']
         self.data_path = conf_dict['data_path']
-        self.case = conf_dict['case']
-        self.control = conf_dict['control']
         self.metric = conf_dict['metric']
+        self.selector_settings = conf_dict['selector_settings']
+        self.classifier_settings = conf_dict['classifier_settings']
 
 
 def write_correlation_heatmap(selector_path, features, df):
@@ -657,19 +661,18 @@ results_path = os.path.join(scratch_path, job_id)
 os.mkdir(results_path)
 
 TARGET = config.target
-CASE = config.case
-CONTROL = config.control
 input_data_filename = config.data_path
 data = DataReader().read(input_data_filename)
 df, labels = DataReader().read_data(data, TARGET)
-print("COLUMNS:", df.columns)
-print(labels)
 features = list(df.columns)
 k = int(config.k)
-classifiers_settings = {'rf': {'n_estimators': 300},
-                        'svm': {'probability': True},
-                        'knn': {'n_neighbors': 3},
-                        'nn': {'hidden_layer_sizes': (k, 100, len(set(labels)))}}
+
+classifier_settings_dict = config.classifier_settings
+
+classifiers_settings = {'rf': {'n_estimators': classifier_settings_dict['rf_n_estimators']},
+                        'svm': {'probability': True, 'C': classifier_settings_dict['svm_c']},
+                        'knn': {'n_neighbors': classifier_settings_dict['knn_neighbours']},
+                        'nn': {'hidden_layer_sizes': (k, classifier_settings_dict['mlp_nodes'], len(set(labels)))}}
 available_classifier = {'rf': RandomForestClassifier, 'svm': SVC, 'knn': KNeighborsClassifier, 'nn': MLPClassifier}
 
 
@@ -678,15 +681,26 @@ def create_classifier_by_name(name: str):
     return available_classifier[name](**kwargs)
 
 
-available_selectors = {'rf': RandomForestSelector(),
-                       'it': ITSelector(ITERATIONS, FEATURES_SUBSET_SIZE),
+selector_settings_dict = config.selector_settings
+
+case = selector_settings_dict['it_case']
+control = selector_settings_dict['it_control']
+ALPHA = selector_settings_dict['it_alpha']
+
+available_selectors = {'rf': RandomForestSelector(selector_settings_dict['rf_n_estimators']),
+                       'it': ITSelector(selector_settings_dict['it_iterations'],
+                                        selector_settings_dict['it_subset_size'], case, control),
                        'skbest': SelectKBestSelector(),
                        'lasso': LassoSelector(),
                        'elastic': ElasticNetSelector(),
-                       'rmcfs': MCFSSelector(),
+                       'rmcfs': MCFSSelector(selector_settings_dict['rmcfs_cutoff_permutations']),
                        'kendall': KendallSelector(),
                        'pearson': PearsonSelector(),
-                       'boosted_it': BoostedITSelector(ITERATIONS, FEATURES_SUBSET_SIZE)}
+                       'boosted_it': BoostedITSelector(selector_settings_dict['it_iterations'],
+                                                       selector_settings_dict['it_subset_size'],
+                                                       case,
+                                                       control,
+                                                       selector_settings_dict['correlation_threshold'])}
 
 fs_selectors = [available_selectors[algo] for algo in config.algorithms]
 fs_aggregator = FeatureSelectorsAggregator(fs_selectors)

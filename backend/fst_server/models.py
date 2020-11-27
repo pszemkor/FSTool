@@ -21,6 +21,26 @@ class HPCSettings(models.Model):
 
 
 @auto_str
+class SelectorSettings(models.Model):
+    rf_n_estimators = models.IntegerField(default=200, null=False)
+    it_iterations = models.IntegerField(default=50000, null=False)
+    it_case = models.CharField(default='CASE', max_length=200, null=False)
+    it_control = models.CharField(default='CONTROL', max_length=200, null=False)
+    it_subset_size = models.IntegerField(default=10, null=False)
+    it_alpha = models.FloatField(default=0.5, null=False)
+    rmcfs_cutoff_permutations = models.IntegerField(default=30, null=False)
+    correlation_threshold = models.FloatField(default=0.7, null=False)
+
+
+@auto_str
+class ClassifierSettings(models.Model):
+    rf_n_estimators = models.IntegerField(default=300, null=False)
+    knn_neighbours = models.IntegerField(default=3, null=False)
+    svm_c = models.FloatField(default=1.0, null=False)
+    mlp_nodes = models.IntegerField(default=100, null=False)
+
+
+@auto_str
 class Job(models.Model):
     job_id = models.CharField(primary_key=True, max_length=200, null=False)
     status = models.CharField(max_length=50, null=False)

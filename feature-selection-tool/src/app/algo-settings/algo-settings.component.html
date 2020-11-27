@@ -1,0 +1,121 @@
+<div class="container" fxLayout="row" fxLayoutGap="10px" fxLayoutAlign.gt-md="space-around center">
+  <div class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign.gt-md="space-around center">
+    <div fxFlex="40">
+      <mat-card>
+        <div fxFlex fxFlexOffset="20px" class="form-size">
+          <h2>Settings of feature selectors</h2>
+          <form novalidate [formGroup]="selectorSettingsForm" (ngSubmit)="onSelectorSubmit()" class="mat-size">
+            <h3>Random Forest</h3>
+            <p>
+              <mat-form-field class="full-width">
+                <input matInput formControlName="rf_n_estimators" placeholder="Number of estimators" type="text">
+              </mat-form-field>
+            </p>
+            <h3>Information theoretical algorithm</h3>
+            <p>
+              <mat-form-field class="full-width">
+                <input matInput formControlName="it_iterations" placeholder="Number of iterations" type="text">
+              </mat-form-field>
+            </p>
+            <p>
+              <mat-form-field class="full-width">
+                <input matInput formControlName="it_case" placeholder="CASE label" type="text">
+              </mat-form-field>
+            </p>
+            <p>
+              <mat-form-field class="full-width">
+                <input matInput formControlName="it_control" placeholder="CONTROL label" type="text">
+              </mat-form-field>
+            </p>
+            <p>
+              <mat-form-field class="full-width">
+                <input matInput formControlName="it_subset_size" placeholder="Random feature subset size" type="text">
+              </mat-form-field>
+            </p>
+            <p>
+              Alpha
+              <mat-slider thumbLabel formControlName="it_alpha" step="0.25" min="0.25" max="2"></mat-slider>
+            </p>
+            <h3>Monte Carlo Feature Selection</h3>
+            <p>
+              <mat-form-field class="full-width">
+                <input matInput formControlName="rmcfs_cutoff_permutations" placeholder="Cutoff permutations"
+                       type="text">
+              </mat-form-field>
+            </p>
+            <h3>Correlation-based algorithms</h3>
+            <p>
+              <mat-form-field class="full-width">
+                <input matInput formControlName="correlation_threshold" placeholder="Correlation threshold" type="text">
+              </mat-form-field>
+            </p>
+
+            <div fxLayoutAlign="center">
+              <button type="submit" mat-button class="hello-primary">Update selectors settings
+              </button>
+            </div>
+          </form>
+        </div>
+      </mat-card>
+    </div>
+    <div *ngIf="tempSelectorSettings" class="container" fxLayout="column" fxLayoutAlign.gt-md="space-around center">
+      <mat-spinner></mat-spinner>
+      <h2>Updating selector settings...</h2>
+    </div>
+
+    <div fxFlex *ngIf="selectorErrorMessage" class="error_color">
+      <h1>Error</h1>
+      <h2>{{selectorErrorMessage}}</h2>
+    </div>
+  </div>
+
+
+  <div class="container" fxLayout="column" fxLayoutGap="10px" fxLayoutAlign.gt-md="space-around center">
+    <div fxFlex="40">
+      <mat-card>
+        <div fxFlex fxFlexOffset="20px" class="form-size">
+          <h2>Settings of classifiers</h2>
+          <form novalidate [formGroup]="classifierSettingsForm" (ngSubmit)="onClassifierSubmit()" class="mat-size">
+            <h3>Random Forest</h3>
+            <p>
+              <mat-form-field class="full-width">
+                <input matInput formControlName="rf_n_estimators" placeholder="Number of estimators" type="text">
+              </mat-form-field>
+            </p>
+            <h3>KNN</h3>
+            <p>
+              Number of neighbours
+              <mat-slider thumbLabel formControlName="knn_neighbours" step="2" min="1" max="9"></mat-slider>
+            </p>
+            <h3>SVM</h3>
+            <p>
+              <mat-form-field class="full-width">
+                <input matInput formControlName="svm_c" placeholder="C parameter" type="text">
+              </mat-form-field>
+            </p>
+            <h3>MLP</h3>
+            <p>
+              <mat-form-field class="full-width">
+                <input matInput formControlName="mlp_nodes" placeholder="Nodes in hidden layer" type="text">
+              </mat-form-field>
+            </p>
+
+            <div fxLayoutAlign="center">
+              <button type="submit" mat-button class="hello-primary">Update classifiers settings
+              </button>
+            </div>
+          </form>
+        </div>
+      </mat-card>
+    </div>
+    <div *ngIf="tempClassifierSettings" class="container" fxLayout="column" fxLayoutAlign.gt-md="space-around center">
+      <mat-spinner></mat-spinner>
+      <h2>Updating classifier settings...</h2>
+    </div>
+
+    <div fxFlex *ngIf="classifierErrorMessage" class="error_color">
+      <h1>Error</h1>
+      <h2>{{classifierErrorMessage}}</h2>
+    </div>
+  </div>
+</div>
