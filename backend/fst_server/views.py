@@ -21,13 +21,18 @@ logger = get_logger()
 def fs_request(request):
     prefix = "/featureselection: "
     logger.debug(prefix)
-    settings = HPCSettings.objects.all()
-    logger.debug(prefix + "Getting HPCSettings")
+    user_settings = HPCSettings.objects.all()
+    selector_settings = SelectorSettings.objects.all()
+    classifier_settings = ClassifierSettings.objects.all()
+    logger.debug(prefix + "Getting HPCSettings, ClassifierSettings, SelectorSettings")
     data = request.data
-    if len(settings) != 1:
+    if len(user_settings) != 1 or len(selector_settings) != 1 or len(classifier_settings) != 1:
         return HttpResponse("Missing settings", status=500)
 
-    user_settings = settings[0]
+    user_settings = user_settings[0]
+    selector_settings = selector_settings[0]
+    classifier_settings = classifier_settings[0]
+
     workdir = '/net/scratch/people/{}'.format(user_settings.user_name)
     logger.info(prefix + "Uploading FS script")
     upload_fs_script(user_settings, workdir)
@@ -36,7 +41,8 @@ def fs_request(request):
     name_of_file = upload_csv(data, user_settings, workdir)
 
     logger.info(prefix + "Uploading configuration")
-    configuration_file = upload_configuration(data, name_of_file, user_settings, workdir)
+    configuration_file = upload_configuration(data, name_of_file, user_settings, selector_settings, classifier_settings,
+                                              workdir)
 
     logger.info(prefix + "Uploading script.slurm")
     script = upload_slurm_script(configuration_file, request, user_settings.grant_id)
@@ -242,15 +248,16 @@ def upload_csv(data, user_settings, workdir):
     return create_and_upload(content, fd, filename, user_settings, workdir)
 
 
-def upload_configuration(data, data_path, user_settings, workdir):
+def upload_configuration(data, data_path, user_settings, selector_settings, classifier_settings, workdir):
     params = {'k': data['k'],
               'algorithms': data['algorithms'],
               'classifiers': data['classifiers'],
               'target': data['target'],
               'metric': data['metric'],
-              'case': 'F',
-              'control': 'M',
-              'data_path': data_path}
+              'data_path': data_path,
+              'selector_settings': model_to_dict(selector_settings),
+              'classifier_settings': model_to_dict(classifier_settings),
+              }
     fd, filename = tempfile.mkstemp()
     content = json.dumps(params)
     return create_and_upload(content, fd, filename, user_settings, workdir)
