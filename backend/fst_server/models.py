@@ -24,8 +24,8 @@ class HPCSettings(models.Model):
 class SelectorSettings(models.Model):
     rf_n_estimators = models.IntegerField(default=200, null=False)
     it_iterations = models.IntegerField(default=50000, null=False)
-    it_case = models.CharField(default='CASE', max_length=200, null=False)
-    it_control = models.CharField(default='CONTROL', max_length=200, null=False)
+    it_case = models.CharField(default='case', max_length=200, null=False)
+    it_control = models.CharField(default='control', max_length=200, null=False)
     it_subset_size = models.IntegerField(default=10, null=False)
     it_alpha = models.FloatField(default=0.5, null=False)
     rmcfs_cutoff_permutations = models.IntegerField(default=30, null=False)

@@ -187,16 +187,18 @@ def get_cases_and_controls(X_train, y_train, case, control):
     return m_cases, m_controls
 
 
-def info_based(X_train, y_train, features_subset_size, iters, case, control, components=None):
+def info_based(X_train, y_train, features_subset_size, iters, case, control, name, components=None):
     start = time.time()
 
     m_cases, m_controls = get_cases_and_controls(X_train, y_train, case, control)
     feature_ind_to_name = collect_ind_to_name(m_cases)
     FEATURES_COUNT = m_cases.shape[1]
     print('FEATURES COUNT', FEATURES_COUNT)
+    print('Cases shape: ', m_cases.shape, 'Control shape: ', m_controls.shape)
+    print('CASE NAME:', case, 'CONTROL NAME:', control, 'ITERATIONS:', iters)
     all_measurements = dict()
     for patient_ind, ind_row in enumerate(m_cases.iterrows()):
-        print("Starting for k = ", features_subset_size, ", patient = ", ind_row[0], "(i={})...".format(patient_ind))
+        print('Starting for k = ', features_subset_size, ', patient = ', ind_row[0], '(i={})...'.format(patient_ind))
         d = pd.DataFrame(-1, index=np.arange(2 * features_subset_size), columns=[i + 1 for i in range(iters)])
         d = d.transpose()
         if not components:
@@ -210,14 +212,14 @@ def info_based(X_train, y_train, features_subset_size, iters, case, control, com
 
         global SUBSET
         path = os.path.join(results_path,
-                            '{}/{}/{}/{}'.format("BoostedITSelector", iters, features_subset_size,
+                            '{}/{}/{}/{}'.format(name, iters, features_subset_size,
                                                  SUBSET))
-        print("Parquet path:", path)
+        print('Parquet path:', path)
         d_to_write = d.to_frame()
         d_to_write.columns = d_to_write.columns.astype(str)
         Path(path).mkdir(parents=True, exist_ok=True)
         d_to_write.to_parquet(path + '/{}.parquet'.format(ind_row[0]))
-        print("Result saved for k = ", features_subset_size, ", patient = ", ind_row[0], "...")
+        print('Result saved for k = ', features_subset_size, ', patient = ', ind_row[0], '...')
 
         # collect results
         feature_ind_vals = defaultdict(list)
@@ -289,8 +291,8 @@ class MCFSSelector(FeatureSelector):
         print('.libPaths( c( "{}" , .libPaths() ) )'.format(scratch_path))
         r('.libPaths( c( "{}" , .libPaths() ) )'.format(scratch_path))
         r('install.packages("rmcfs", repos="https://cloud.r-project.org/")')
-        r.library("rmcfs")
-        r.library("dplyr")
+        r.library('rmcfs')
+        r.library('dplyr')
 
         original_features = X_train.columns.values
         X_train.columns = ['f' + str(i + 1) for i, _ in enumerate(X_train.columns.values)]
@@ -317,7 +319,7 @@ class MCFSSelector(FeatureSelector):
         del X_train[TARGET]
         X_train.columns = original_features
         self.features_importances = [features_to_ri['f' + str(i + 1)] for i in range(0, len(original_features))]
-        print("RMCFS:FEATURE:IMPORTANCES", self.features_importances)
+        print('RMCFS:FEATURE:IMPORTANCES', self.features_importances)
 
 
 class ITSelector(FeatureSelector):
@@ -330,7 +332,7 @@ class ITSelector(FeatureSelector):
 
     def fit(self, X_train, y_train, subset_no):
         self.features_importances = info_based(X_train, y_train, self.features_subset_size, self.iterations, self.case,
-                                               self.control)
+                                               self.control, self.name)
 
 
 class BoostedITSelector(FeatureSelector):
@@ -356,7 +358,7 @@ class BoostedITSelector(FeatureSelector):
             all_components.append(list(c))
 
         self.features_importances = info_based(X_train, y_train, self.features_subset_size, self.iterations,
-                                               self.case, self.control, all_components)
+                                               self.case, self.control, self.name, all_components)
 
 
 class SelectKBestSelector(FeatureSelector):
@@ -574,7 +576,7 @@ class DataReader:
         return df, labels
 
     def __extract_dataframe(self, base64_data):
-        i = base64_data.find(",")
+        i = base64_data.find(',')
         data_str = base64.b64decode(base64_data[i + 1:]).decode('utf-8')
         return pd.read_csv(StringIO(data_str))
 
@@ -603,7 +605,7 @@ def write_correlation_heatmap(selector_path, features, df):
     cor = df[features].corr()
     sns.set(font_scale=4)
     plt.subplots(figsize=(50, 50))
-    sns.heatmap(cor, vmax=1.0, center=0, square=True, linewidths=.5, cbar_kws={"shrink": .70})
+    sns.heatmap(cor, vmax=1.0, center=0, square=True, linewidths=.5, cbar_kws={'shrink': .70})
     plt.savefig(os.path.join(selector_path, 'correlation_heatmap.png'), bbox_inches='tight')
     plt.clf()
 
@@ -615,12 +617,12 @@ def write_pickles(selector_path: str, selector_name: str, df: pd.DataFrame, feat
         cls.fit(df[features], labels)
         cls.selected_features = features
         pickle.dump(cls,
-                    open(os.path.join(selector_path, "{}-{}.p".format(selector_name, cls.__class__.__name__)), "wb"))
+                    open(os.path.join(selector_path, '{}-{}.p'.format(selector_name, cls.__class__.__name__)), 'wb'))
 
 
 def write_report(selector_path, report):
     json_repr = report.to_json()
-    with open(os.path.join(selector_path, "report.json"), "w+") as f:
+    with open(os.path.join(selector_path, 'report.json'), 'w+') as f:
         f.write(json_repr)
 
 
@@ -634,9 +636,9 @@ def write_graphs(selector_path: str, report: SelectorReport):
             y.append(feature_stats.importance)
         x_pos = [i for i, _ in enumerate(x)]
         plt.barh(x_pos, y, color='green')
-        plt.ylabel("Feature", fontsize=get_font_size(len(x)))
-        plt.xlabel("Importance")
-        plt.title("Features selected features in the fold: " + str(i))
+        plt.ylabel('Feature', fontsize=get_font_size(len(x)))
+        plt.xlabel('Importance')
+        plt.title('Features selected features in the fold: ' + str(i))
         plt.yticks(x_pos, x)
         plt.savefig(os.path.join(selector_path, 'fold_{}.png'.format(i)), bbox_inches='tight')
         plt.clf()
@@ -719,3 +721,5 @@ for selector in fs_selectors:
     write_pickles(selector_path, selector_name, df, features, labels, config.classifiers)
     write_report(selector_path, report)
     write_correlation_heatmap(selector_path, features, df)
+
+print('SUCCESS')
