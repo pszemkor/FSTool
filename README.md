@@ -1,6 +1,7 @@
 # FSTool
 A tool for comparison and integration of feature selection algorithms for modeling of response to targeted therapy for patients with hairy cell leukemia.
 ### Table of Contents  
+- [Problem domain](#domain)
 - [Project goal](#goal)  
 - [Technological stack](#techstack)  
 - [Setup](#setup)  
@@ -13,6 +14,9 @@ A tool for comparison and integration of feature selection algorithms for modeli
   * [Ranking of selected features](#rank)
   * [Results overview](#results)
   * [HPC settings](#hpc)
+
+## Problem domain <a name="domain"></a>
+
 
 ## Project goal <a name="goal"></a>
 
