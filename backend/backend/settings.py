@@ -4,9 +4,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CORS_ORIGIN_ALLOW_ALL = True
 SECRET_KEY = '6e96m)bm+fi%l$nogv=p-fhruxozz&u^ojab)m(v%tp+tp8tqw'
 
-# SECURITY WARNING: don't run with d\ebug turned on in production!
+# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["backend", "localhost", "127.0.0.1", "frontend"]
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
