@@ -14,6 +14,7 @@ A tool for comparison and integration of feature selection algorithms for modeli
   * [Ranking of selected features](#rank)
   * [Results overview](#results)
   * [HPC settings](#hpc)
+- [Acknowledgements](#ack)
 
 ## Problem domain <a name="domain"></a>
 
@@ -51,3 +52,6 @@ A tool for comparison and integration of feature selection algorithms for modeli
 
 #### HPC Settings <a name="hpc"></a>
 <img width="1304" alt="hpc_settings" src="https://user-images.githubusercontent.com/37248877/101282594-5bf14680-37d6-11eb-8f4f-a70017e84939.png">
+
+## Acknowledgements <a name="ack"></a>
+
