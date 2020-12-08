@@ -1,4 +1,6 @@
 # FSTool
+[![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org)
+
 A tool for comparison and integration of feature selection algorithms for modeling of response to targeted therapy for patients with hairy cell leukemia.
 ### Table of Contents  
 - [Problem domain](#domain)
