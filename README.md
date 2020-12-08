@@ -3,8 +3,7 @@
 
 A tool for comparison and integration of feature selection algorithms for modeling of response to targeted therapy for patients with hairy cell leukemia.
 ### Table of Contents  
-- [Problem domain](#domain)
-- [Project goal](#goal)  
+- [Project description](#desc)  
 - [Technological stack](#techstack)
 - [Setup](#setup)  
   * [Deployment](#deploy)
@@ -20,11 +19,12 @@ A tool for comparison and integration of feature selection algorithms for modeli
 - [Contributors](#contributors)
 - [Supervisors](#supervisors)
 
-## Problem domain <a name="domain"></a>
+## Problem description <a name="desc"></a>
+The goal of this project was to conduct research on feature selection algorithms, as well as to build a convenient tool for their comparison and integration.
 
+The tool will be used for scientific applications, such as modelling response to the targeted therapy for patients with hairy cell leukemia.
 
-## Project goal <a name="goal"></a>
-
+The outcome of the project is a dockerized web application that allows users to schedule feature selection and classification computations on HPC clusters in PLGrid infrastructure.
 
 ## Technological stack <a name="techstack"></a>
 * Python scientific libraries: <a href="https://pandas.pydata.org/">pandas</a>, <a href="https://numpy.org/">NumPy</a>, <a href="https://scikit-learn.org/">scikit-learn</a>, <a href="https://seaborn.pydata.org/">seaborn</a>, <a href="https://github.com/nalepae/pandarallel">pandarallel</a>, <a href="https://matplotlib.org/">matplotlib</a>
