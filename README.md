@@ -26,13 +26,29 @@ A tool for comparison and integration of feature selection algorithms for modeli
 
 
 ## Setup <a name="setup"></a>
-
+In this chapter the process of the setup is presented. 
 
 ### Deployment <a name="deploy"></a>
-
+In order to deploy the application, docker-compose is required. Once this requirement is satisfied all you need to do is moving to the main directory of the project and run the following command:
+```
+docker-compose up --build
+```
 
 ### Settings <a name="settings"></a>
-
+Before start working with this project you have to apply for the affiliation and the grant on https://portal.plgrid.pl/. 
+Having completed the previous you have to generate base64 proxy token. 
+1. You have to access the HPC cluster via ssh.
+2. Generate x.509 certificate:
+```
+grid-proxy-init
+```
+3. Prepare the token:
+```
+cat \tmp\[x509_certificate_name] | base64 | tr -d "\n"
+```
+4. Go to the "HPC Settings" tab
+5. Paste the token and fill the form
+6. Hit "Update settings"
 
 ## Presentation of functionalities <a name="overview"></a>
 #### Algorithms selection <a name="algo"></a>
