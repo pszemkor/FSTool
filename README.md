@@ -3,7 +3,7 @@ A tool for comparison and integration of feature selection algorithms for modeli
 ### Table of Contents  
 - [Problem domain](#domain)
 - [Project goal](#goal)  
-- [Technological stack](#techstack)  
+- [Technological stack](#techstack)
 - [Setup](#setup)  
   * [Deployment](#deploy)
   * [Settings](#settings)
@@ -25,7 +25,12 @@ A tool for comparison and integration of feature selection algorithms for modeli
 
 
 ## Technological stack <a name="techstack"></a>
-
+* Python scientific libraries: <a href="https://pandas.pydata.org/">pandas</a>, <a href="https://numpy.org/">NumPy</a>, <a href="https://scikit-learn.org/">scikit-learn</a>, <a href="https://seaborn.pydata.org/">seaborn</a>, <a href="https://github.com/nalepae/pandarallel">pandarallel</a>, <a href="https://matplotlib.org/">matplotlib</a>
+* Django
+* SQLite
+* Angular
+* Docker
+* Jupyter Notebook
 
 ## Setup <a name="setup"></a>
 In this chapter the process of the setup is presented. 
