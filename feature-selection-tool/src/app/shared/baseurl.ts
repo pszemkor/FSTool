@@ -1,1 +1,1 @@
-export const baseURL = 'backend:8000/api/v1/';
+export const baseURL = '/api/v1/';

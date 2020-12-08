@@ -7,6 +7,7 @@ services:
   frontend:
     build: feature-selection-tool
     ports:
-      - "4200:4200"
+      - "80:80"
     links:
       - backend
+
