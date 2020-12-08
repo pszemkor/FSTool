@@ -15,6 +15,8 @@ A tool for comparison and integration of feature selection algorithms for modeli
   * [Results overview](#results)
   * [HPC settings](#hpc)
 - [Acknowledgements](#ack)
+- [Contributors](#contributors)
+- [Supervisors](#supervisors)
 
 ## Problem domain <a name="domain"></a>
 
@@ -70,4 +72,13 @@ cat \tmp\[x509_certificate_name] | base64 | tr -d "\n"
 <img width="1304" alt="hpc_settings" src="https://user-images.githubusercontent.com/37248877/101282594-5bf14680-37d6-11eb-8f4f-a70017e84939.png">
 
 ## Acknowledgements <a name="ack"></a>
+This research was supported in part by PLGrid Infrastructure.
 
+
+## Contributors <a name="contributors"></a>
+* <a href="https://github.com/pszemkor">Przemysław Jabłecki</a>
+* <a href="https://github.com/filipsl"> Filip Ślazyk</a>
+
+## Supervisors <a name="supervisors"></a>
+* Michał Seweryn, PhD  (author of the information theoretical approach algorithm)
+* Maciej Malawski, PhD
