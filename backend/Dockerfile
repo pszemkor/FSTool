@@ -19,4 +19,4 @@ ENV DJANGO_SETTINGS_MODULE=backend.settings
 RUN touch /etc/crontab /etc/cron.*/*
 RUN crontab /etc/cron.d/crontab-file
 RUN apt-get -y install rsyslog
-CMD cron -L15 && gunicorn --bind 0.0.0.0:8000 backend.wsgi
+CMD cron -L15 && gunicorn --bind 0.0.0.0:8000 --timeout 200 backend.wsgi
