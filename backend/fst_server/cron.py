@@ -1,5 +1,7 @@
 import json
 import logging
+import django
+django.setup()
 
 import requests
 from django.db.models import Q
@@ -109,3 +111,8 @@ def handle_file(dir_path, filename, header_with_proxy, reports, images, classifi
         serialized_classifier = report_response.content
         logger.info("Persisting trained model")
         classifiers.append((filename[:-2], serialized_classifier))
+
+
+update_jobs()
+with open("/tmp/tmp.txt", "w+") as f:
+    f.write("hello")
