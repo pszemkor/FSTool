@@ -2,9 +2,9 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CORS_ORIGIN_ALLOW_ALL = True
-SECRET_KEY = '6e96m)bm+fi%l$nogv=p-fhruxozz&u^ojab)m(v%tp+tp8tqw'
+SECRET_KEY = os.environ.get('SECRET_KEY', '6e96m)bm+fi%l$nogv=p-fhruxozz&u^ojab)m(v%tp+tp8tqw')
+DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 
-DEBUG = True
 ALLOWED_HOSTS = ["*"]
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -76,5 +76,3 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 STATIC_URL = '/static/'
-CRONJOBS = [('* * * * *', 'fst_server.cron.update_jobs', '>> /tmp/scheduled_job.log 2>&1')]
-CRONTAB_EXECUTABLE = '/usr/bin/crontab'
